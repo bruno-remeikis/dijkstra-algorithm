@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main>
+        <div>
+            <h1>Graph</h1>
+
+            <div id="control-buttons">
+                <button id="btn-modo-mover">Mover</button>
+                <button id="btn-modo-add-vertice">Novo Vértice</button>
+                <button id="btn-modo-select-vertice">Selecionar Vértice</button>
+                <button id="btn-modo-connect-vertices">Conectar Vértices</button>
+                <button id="btn-clear">Limpar</button>
+            </div>
+
+            <canvas id="canvas" width="460" height="300"></canvas>
+            
+            <div class="point-inputs">
+                <div class="point-input">
+                    <label for="origem">Origem</label>
+                    <input id="origem" value="A">
+                </div>
+                <div class="point-input">
+                    <label for="destino">Destino</label>
+                    <input id="destino" value="F">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>

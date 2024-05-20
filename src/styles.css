@@ -1,0 +1,79 @@
+* {
+    padding: none;
+    margin: 0;
+}
+html, body {
+    height: 100%;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: /*rgb(0, 43, 74);*/ rgba(255, 255, 255, 0.82);
+}
+
+main {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    background: linear-gradient(#e66465, #9198e5);
+    /* background: linear-gradient(#4c0000, #292b40); */
+}
+h1 {
+    text-align: center;
+    margin-bottom: 0.6rem;
+}
+canvas {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background-color: /*rgb(161, 216, 255);*/ rgba(255, 255, 255, 0.2);
+    border-radius: 0.7rem;
+    border-top-left-radius: 0;;
+}
+
+#control-buttons {
+    display: flex;
+    gap: 0.1rem;
+}
+#control-buttons button {
+    display: block;
+
+    padding: 0.4rem 0.4rem 0.2rem 0.4rem;
+    border: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: none;
+
+    cursor: pointer;
+}
+/*#control-buttons button::before {
+    content: "\002b";
+}*/
+
+.point-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+}
+.point-inputs .point-input {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-top: 1rem;
+}
+.point-inputs .point-input label {
+    margin-bottom: 0.4rem;
+    font-size: 1.2rem;
+}
+.point-inputs .point-input input {
+    width: 3rem;
+    height: 3rem;
+
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    border-radius: 0.2rem;
+
+    text-align: center;
+    font-size: 1.2rem;
+    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.4);
+}
