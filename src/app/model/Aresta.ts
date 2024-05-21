@@ -1,6 +1,6 @@
-import Vertice from "./Vertice";
+import { Vertice } from "./Vertice";
 
-export default class Aresta
+export class Aresta
 {
     static readonly defaultDirecional = false;
     //static readonly raioValor = 7;

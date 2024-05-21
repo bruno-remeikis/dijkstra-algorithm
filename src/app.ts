@@ -1,69 +1,16 @@
-import Vertice from "./app/model/Vertice";
-import DijstraAlgorithm from "./app/model/DjikstraAlgorithm";
-import GraphRenderer from "./app/model/GraphRenderer";
-
-interface Djikstra {
-    raiz: number;
-    dist: number[];
-    marca: number[];
-    ant: number[];
-}
-
-function gerarGrafo(): Vertice[]
-{
-    const adjMatrix = [
-        [  0,  2,  0,  1,  0,  0,  0, ],
-        [  0,  0,  0,  3, 10,  0,  0, ],
-        [  4,  0,  0,  0,  0,  5,  0, ],
-        [  0,  0,  2,  0,  2,  8,  4, ],
-        [  0,  0,  0,  0,  0,  0,  6, ],
-        [  0,  0,  0,  0,  0,  0,  0, ],
-        [  0,  0,  0,  0,  0,  1,  0, ],
-    ];
-
-    const vertices: Vertice[] = [];
-
-    for(let i = 0; i < adjMatrix.length; i++)
-    {
-        const v = criarVertice();
-        if(v)
-            vertices.push(v);
-    }
-    
-    // Conectar vértices (criar arestas)
-    for(let i = 0; i < adjMatrix.length; i++)
-        for(let j = 0; j < adjMatrix.length; j++)
-            if(adjMatrix[i][j] > 0)
-                vertices[i].conectar(vertices[j], adjMatrix[i][j], true);
-
-    vertices[0].setPosition(150, 50);
-    vertices[1].setPosition(300, 50);
-    
-    vertices[2].setPosition(75, 150);
-    vertices[3].setPosition(225, 150);
-    vertices[4].setPosition(385, 150);
-    
-    vertices[5].setPosition(150, 250);
-    vertices[6].setPosition(300, 250);
-
-    return vertices;
-}
-
-function criarVertice(): Vertice | null
-{
-    if(Vertice.getLastIndex() >= 25)
-        return null;
-
-    const index = Vertice.consumeIndex();
-    
-    return new Vertice(index, String.fromCharCode(index + 65));
-}
+import { Vertice } from "./app/model/Vertice";
+import { DijstraAlgorithm } from "./app/model/DjikstraAlgorithm";
+import { GraphRenderer } from "./app/model/GraphRenderer";
+import { Grafo } from "./app/model/Grafo";
 
 type Modo = 'mover' | 'add-vertice' | 'select-vertice' | 'connect-vertices';
-let modo: Modo = 'mover';
+
+let modo: Modo | undefined;
+selectModo('mover');
+
 let connectedVertices: Vertice[] = [];
 
-function configModeBtn(nomeModo: Modo) {
+/*function configModeBtn(nomeModo: Modo) {
     console.log(nomeModo);
 
     const el = document.getElementById('btn-modo-' + nomeModo);
@@ -80,7 +27,7 @@ function configModeBtn(nomeModo: Modo) {
                     clearSelected();
             }
         }
-}
+}*/
 
 function clearSelected() {
     while(connectedVertices.length > 0) {
@@ -90,12 +37,13 @@ function clearSelected() {
     }
 }
 
+// Grafo
+const grafo: Grafo = new Grafo();
+
+main();
+
 function main()
 {
-    // Elementos do grafo
-
-    let vertices: Vertice[] = gerarGrafo();
-
     // Elementos HTML
 
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -109,22 +57,20 @@ function main()
 
     // Djikstra
 
-    let djikstraAlgorithm: DijstraAlgorithm | null = DijstraAlgorithm.process(vertices, raiz);
+    let djikstraAlgorithm: DijstraAlgorithm | null = DijstraAlgorithm.process(grafo, raiz);
     if(djikstraAlgorithm)
         djikstraAlgorithm.calculatePath(destino);
 
     // Renderizador
 
-    const gh: GraphRenderer = new GraphRenderer(vertices);
+    const gh: GraphRenderer = new GraphRenderer(/*vertices*/ grafo);
     gh.render();
 
     // Eventos
 
-    configModeBtn('mover');
-    configModeBtn('add-vertice');
-    configModeBtn('select-vertice');
-    configModeBtn('connect-vertices');
+    configBotoesModo();
 
+    /*
     const btnClear = document.getElementById('btn-clear');
     if(btnClear)
         btnClear.onclick = () => {
@@ -137,8 +83,9 @@ function main()
             inpDestino.value = '';
             gh.clear();
         }
+    */
 
-    canvas.onclick = (event) =>
+    /*canvas.onclick = (event) =>
     {
         const x = event.offsetX;
         const y = event.offsetY;
@@ -194,8 +141,9 @@ function main()
                 }
                 break;
         }
-    };
+    };*/
 
+    //! Analizar trexos semelhantes a `grafo.vertices`
     inpOrigem.onkeydown = (event) =>
     {
         event.preventDefault();
@@ -204,15 +152,15 @@ function main()
 
         if(key.length == 1)
         {
-            Vertice.clearMarcacoes(vertices);
+            Vertice.clearMarcacoes(grafo.vertices);
             gh.clear();
 
             inpOrigem.value = key;
             raiz = key.charCodeAt(0) - 65;
 
             try {
-                if(raiz >= 0 && raiz < vertices.length) {
-                    const alg = DijstraAlgorithm.process(vertices, raiz);
+                if(raiz >= 0 && raiz < grafo.vertices.length) {
+                    const alg = DijstraAlgorithm.process(grafo, raiz);
                     if(alg) {
                         djikstraAlgorithm = alg;
                         alg.calculatePath(destino);
@@ -225,6 +173,7 @@ function main()
         }
     };
 
+    //! Analizar trexos semelhantes a `grafo.vertices`
     inpDestino.onkeydown = (event) =>
     {
         event.preventDefault();
@@ -233,14 +182,14 @@ function main()
 
         if(key.length == 1)
         {
-            Vertice.clearMarcacoes(vertices);
+            Vertice.clearMarcacoes(grafo.vertices);
             gh.clear();
 
             inpDestino.value = key;
             destino = key.charCodeAt(0) - 65;
 
             try {
-                if(destino >= 0 && destino < vertices.length)
+                if(destino >= 0 && destino < grafo.vertices.length)
                     if(djikstraAlgorithm) {
                         djikstraAlgorithm.calculatePath(destino);
                     }
@@ -252,4 +201,82 @@ function main()
     };
 }
 
-main();
+
+
+function actMover() {
+
+}
+
+function limparTudo() {
+    grafo.limpar();
+
+    /*clearSelected();
+    while(vertices.length > 0)
+        vertices.pop();
+    Vertice.resetIndex();
+    djikstraAlgorithm = null;
+    inpOrigem.value = '';
+    inpDestino.value = '';
+    gh.clear();*/
+}
+
+
+
+//! COLOCAR OS MÉTODOS ABAIXO SOB RESPONSABILIDADE DE UMA CLASSE ESPECIFICA
+
+function configBotoesModo()
+{
+    const ctrl = document.getElementById('control-buttons');
+
+    if(!ctrl) {
+        alert('Ops. Houve um problema ao tentarmos configurar alguns botões.');
+        return;
+    }
+
+    for(const child of ctrl.children) {
+        const attrModo = child.getAttribute('data-modo');
+
+        if(attrModo)
+            child.addEventListener('click', () => {
+                modo = attrModo as Modo;
+                unselectAllModos();
+                child.classList.add('selected');
+            });
+    }
+}
+
+function selectModo(_modo: Modo/*btn: Element*/) {
+    const ctrl = document.getElementById('control-buttons');
+
+    if(!ctrl) {
+        alert('Ops. Houve um problema ao tentarmos selecionar um modo.');
+        return;
+    }
+
+    modo = _modo;
+
+    if(modo === undefined)
+        return;
+
+    for(const child of ctrl.children) {
+        const attrModo = child.getAttribute('data-modo');
+
+        if(attrModo && attrModo === _modo) {
+            unselectAllModos();
+            child.classList.add('selected');
+            break;
+        }
+    }
+}
+
+function unselectAllModos() {
+    const ctrl = document.getElementById('control-buttons');
+
+    if(!ctrl) {
+        alert('Ops. Houve um problema ao tentarmos desselecionar um modo.');
+        return;
+    }
+
+    for(const child of ctrl.children)
+        child.classList.remove('selected');
+}

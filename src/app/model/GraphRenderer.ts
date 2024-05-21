@@ -1,17 +1,19 @@
-import Vertice from "./Vertice";
+import { Grafo } from "./Grafo";
+import { Vertice } from "./Vertice";
 
 interface Point {
     x: number;
     y: number;
 }
 
-export default class GraphRenderer
+export class GraphRenderer
 {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D | null;
 
     constructor(
-        public vertices: Vertice[] | undefined = undefined
+        //public vertices: Vertice[] | undefined = undefined
+        public grafo: Grafo| undefined = undefined
     ) {
         this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d");
@@ -109,7 +111,7 @@ export default class GraphRenderer
 
     public render()
     {
-        if(!this.ctx || !this.vertices)
+        if(!this.ctx || !this.grafo?.vertices)
             return;
 
         const fontSize = 14;
@@ -120,7 +122,7 @@ export default class GraphRenderer
         this.ctx.font = `${fontSize}px consolas`; // sans-serif
         this.ctx.lineWidth = 1;
 
-        for(const v of this.vertices)
+        for(const v of this.grafo.vertices)
         {
             for(const a of v.arestas)
             {
@@ -188,7 +190,7 @@ export default class GraphRenderer
             }
         }
         
-        for(const v of this.vertices)
+        for(const v of this.grafo.vertices)
         {
             // Vértice
             this.ctx.beginPath();

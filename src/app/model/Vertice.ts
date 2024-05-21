@@ -1,6 +1,6 @@
-import Aresta from "./Aresta";
+import { Aresta } from "./Aresta";
 
-export default class Vertice
+export class Vertice
 {
     private static nextIndex = 0;
     public static readonly raio = 20;
@@ -24,6 +24,16 @@ export default class Vertice
 
     public static resetIndex = () =>
         Vertice.nextIndex = 0;
+
+    static criarVertice(): Vertice | null
+    {
+        if(Vertice.getLastIndex() >= 25)
+            return null;
+
+        const index = Vertice.consumeIndex();
+        
+        return new Vertice(index, String.fromCharCode(index + 65));
+    }
 
     public conectar(vertice: Vertice, peso?: number, direcional?: boolean)
     {
