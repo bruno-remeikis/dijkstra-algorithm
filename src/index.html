@@ -13,11 +13,12 @@
             <h1>Graph</h1>
 
             <div id="control-buttons">
-                <button data-modo="mover">Mover</button>
-                <button data-modo="add-vertice">Novo Vértice</button>
-                <button data-modo="select-vertice">Selecionar Vértice</button>
-                <button data-modo="connect-vertices">Conectar Vértices</button>
-                <button onclick="limparTudo()">Limpar</button>
+                <button data-mode="move">Mover</button>
+                <button data-mode="add-vertex">Novo Vértice</button>
+                <button data-mode="select-vertex">Selecionar Vértice</button>
+                <button data-mode="connect-vertices">Conectar Vértices</button>
+                <!-- onclick="limparTudo()" -->
+                <button id="btn-clean">Limpar</button>
             </div>
 
             <canvas id="canvas" width="460" height="300"></canvas>

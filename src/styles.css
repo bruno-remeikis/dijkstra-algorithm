@@ -50,6 +50,9 @@ canvas {
 #control-buttons button:hover {
     opacity: 0.8;
 }
+#control-buttons button.selected {
+    background-color: red;
+}
 /*#control-buttons button::before {
     content: "\002b";
 }*/

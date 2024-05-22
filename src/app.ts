@@ -2,11 +2,12 @@ import { Vertice } from "./app/model/Vertice";
 import { DijstraAlgorithm } from "./app/model/DjikstraAlgorithm";
 import { GraphRenderer } from "./app/model/GraphRenderer";
 import { Grafo } from "./app/model/Grafo";
+import { ModeManager } from "./app/model/ModeManager";
 
-type Modo = 'mover' | 'add-vertice' | 'select-vertice' | 'connect-vertices';
+// type Modo = 'mover' | 'add-vertice' | 'select-vertice' | 'connect-vertices';
 
-let modo: Modo | undefined;
-selectModo('mover');
+// let modo: Modo | undefined;
+// selectModo('mover');
 
 let connectedVertices: Vertice[] = [];
 
@@ -37,19 +38,21 @@ function clearSelected() {
     }
 }
 
+// Elementos HTML
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const inpOrigem = document.getElementById('origem') as HTMLInputElement;
+const inpDestino = document.getElementById('destino') as HTMLInputElement;
+const ctrl = document.getElementById('control-buttons');
 // Grafo
 const grafo: Grafo = new Grafo();
+// Renderizador
+const gh: GraphRenderer = new GraphRenderer(canvas, grafo);
+
 
 main();
 
 function main()
 {
-    // Elementos HTML
-
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    const inpOrigem = document.getElementById('origem') as HTMLInputElement;
-    const inpDestino = document.getElementById('destino') as HTMLInputElement;
-
     // Parâmetros
 
     let raiz: number = 0;
@@ -61,14 +64,22 @@ function main()
     if(djikstraAlgorithm)
         djikstraAlgorithm.calculatePath(destino);
 
-    // Renderizador
-
-    const gh: GraphRenderer = new GraphRenderer(/*vertices*/ grafo);
-    gh.render();
-
     // Eventos
 
-    configBotoesModo();
+    if(!ctrl) {
+        alert('Ops. Houve um problema ao tentarmos configurar os modos de manipulação do grafo.')
+        return;
+    }
+
+    const modeManager: ModeManager = new ModeManager(ctrl);
+    modeManager.configModeBtns();
+    modeManager.selectMode('move');
+
+    document.getElementById('btn-clean')?.addEventListener('click', () => limparTudo(gh));
+
+    // Iniciar
+
+    gh.render();
 
     /*
     const btnClear = document.getElementById('btn-clear');
@@ -85,63 +96,25 @@ function main()
         }
     */
 
-    /*canvas.onclick = (event) =>
+    canvas.onclick = (event) =>
     {
         const x = event.offsetX;
         const y = event.offsetY;
 
-        switch(modo)
+        switch(modeManager.mode)
         {
-            case 'add-vertice':
-                const v = criarVertice();
-                if(v) {
-                    v.setPosition(x, y);
-                    vertices.push(v);
-        
-                    gh.clear();
-                    gh.render();
-                }
+            case 'add-vertex':
+                const v = grafo.addVertex(x, y);
+                if(v)
+                    gh.rerender();
                 break;
 
             case 'connect-vertices':
-                let selected: Vertice | undefined;
-                for(const v of vertices)
-                    if(v.hasPoint(x, y))
-                        selected = v;
-                if(selected) {
-                    selected.selected = !selected.selected;
-
-                    // Se o vértice clicado tiver sido selecionado
-                    if(selected.selected)
-                    {
-                        // Se já existir outro vértice selecionado
-                        if(connectedVertices.length === 1) 
-                        {
-                            let valorAresta = Number(prompt("Valor da aresta:"));
-                            if(!valorAresta || isNaN(valorAresta) || valorAresta <= 0)
-                                valorAresta = 1;
-
-                            // Conecta os vértices selecionados
-                            connectedVertices[0].conectar(selected, valorAresta, true);
-
-                            // Remove seleção dos vértices
-                            connectedVertices[0].selected = false;
-                            connectedVertices.pop();
-                            selected.selected = false;
-                        }
-                        else
-                            connectedVertices.push(selected);
-                    }
-                    // Se o vértice clicado tiver sido desselecionado
-                    else
-                        connectedVertices = connectedVertices.filter(v => selected !== v);
-
-                    gh.clear();
-                    gh.render();
-                }
+                grafo.connectVertices(x, y);
+                gh.rerender();
                 break;
         }
-    };*/
+    };
 
     //! Analizar trexos semelhantes a `grafo.vertices`
     inpOrigem.onkeydown = (event) =>
@@ -150,7 +123,7 @@ function main()
 
         const key = event.key.toUpperCase();
 
-        if(key.length == 1)
+        if(key.length === 1)
         {
             Vertice.clearMarcacoes(grafo.vertices);
             gh.clear();
@@ -180,7 +153,7 @@ function main()
 
         const key = event.key.toUpperCase();
 
-        if(key.length == 1)
+        if(key.length === 1)
         {
             Vertice.clearMarcacoes(grafo.vertices);
             gh.clear();
@@ -201,14 +174,16 @@ function main()
     };
 }
 
-
-
-function actMover() {
+function configCanvasClickEvent() {
 
 }
 
-function limparTudo() {
-    grafo.limpar();
+function limparTudo(gh: GraphRenderer) {
+    if(window.confirm("Deseja mesmo apagar tudo?"))
+    {
+        grafo.limpar();
+        gh.rerender();
+    }
 
     /*clearSelected();
     while(vertices.length > 0)
@@ -218,65 +193,4 @@ function limparTudo() {
     inpOrigem.value = '';
     inpDestino.value = '';
     gh.clear();*/
-}
-
-
-
-//! COLOCAR OS MÉTODOS ABAIXO SOB RESPONSABILIDADE DE UMA CLASSE ESPECIFICA
-
-function configBotoesModo()
-{
-    const ctrl = document.getElementById('control-buttons');
-
-    if(!ctrl) {
-        alert('Ops. Houve um problema ao tentarmos configurar alguns botões.');
-        return;
-    }
-
-    for(const child of ctrl.children) {
-        const attrModo = child.getAttribute('data-modo');
-
-        if(attrModo)
-            child.addEventListener('click', () => {
-                modo = attrModo as Modo;
-                unselectAllModos();
-                child.classList.add('selected');
-            });
-    }
-}
-
-function selectModo(_modo: Modo/*btn: Element*/) {
-    const ctrl = document.getElementById('control-buttons');
-
-    if(!ctrl) {
-        alert('Ops. Houve um problema ao tentarmos selecionar um modo.');
-        return;
-    }
-
-    modo = _modo;
-
-    if(modo === undefined)
-        return;
-
-    for(const child of ctrl.children) {
-        const attrModo = child.getAttribute('data-modo');
-
-        if(attrModo && attrModo === _modo) {
-            unselectAllModos();
-            child.classList.add('selected');
-            break;
-        }
-    }
-}
-
-function unselectAllModos() {
-    const ctrl = document.getElementById('control-buttons');
-
-    if(!ctrl) {
-        alert('Ops. Houve um problema ao tentarmos desselecionar um modo.');
-        return;
-    }
-
-    for(const child of ctrl.children)
-        child.classList.remove('selected');
 }

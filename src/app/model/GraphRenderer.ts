@@ -8,14 +8,12 @@ interface Point {
 
 export class GraphRenderer
 {
-    private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D | null;
 
     constructor(
-        //public vertices: Vertice[] | undefined = undefined
+        private canvas: HTMLCanvasElement,
         public grafo: Grafo| undefined = undefined
     ) {
-        this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d");
     }
 
@@ -209,5 +207,10 @@ export class GraphRenderer
             );
             this.ctx.closePath();
         }
+    }
+
+    rerender() {
+        this.clear();
+        this.render();
     }
 }

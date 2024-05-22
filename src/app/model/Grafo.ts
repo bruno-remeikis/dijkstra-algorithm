@@ -52,4 +52,83 @@ export class Grafo
         this._vertices = [];
         Vertice.resetIndex();
     }
+
+    addVertex(x: number, y: number): Vertice | null {
+        const v = Vertice.criarVertice();
+        if(v) {
+            v.setPosition(x, y);
+            this._vertices.push(v);
+        }
+        return v;
+    }
+
+    connectVertices(x: number, y: number)
+    {
+        let clicked: Vertice | null = this.getClickedVertex(x, y);
+
+        if(!clicked)
+            return;
+
+        // Se o vértice clicado já tiver sido selecionado: desseleciona-o
+        if(clicked.selected) {
+            clicked.selected = false;
+        }
+        else {
+            console.log(clicked);
+            console.log(clicked.selected);
+
+            const selectedVertices = this.getSelectedVertices();
+            console.log(selectedVertices);
+
+            // Se houver vértice selecionado anterormente: conecta-o com o `clicked`
+            if(selectedVertices.length > 0)
+            {
+                let valorAresta = Number(prompt("Valor da aresta:"));
+                if(!valorAresta || isNaN(valorAresta) || valorAresta <= 0)
+                    valorAresta = 1;
+
+                selectedVertices[0].conectar(clicked, valorAresta, true);
+                this.unselectAllVertices();
+            }
+            // Se não houver vértice selecionado ainda: seleciona o clicado
+            else {
+                clicked.selected = true;
+            }
+        }
+
+        /*
+        // Se o vértice clicado tiver sido selecionado
+        if(selected.selected)
+        {
+            // Se já existir outro vértice selecionado
+            if(connectedVertices.length === 1)
+            {
+                
+            }
+            else
+                connectedVertices.push(selected);
+        }
+        // Se o vértice clicado tiver sido desselecionado
+        else
+            connectedVertices = connectedVertices.filter(v => selected !== v);
+
+        gh.clear();
+        gh.render();
+        */
+    }
+
+    getSelectedVertices(): Vertice[] {
+        return this._vertices.filter(v => v.selected);
+    }
+
+    unselectAllVertices() {
+        this._vertices.forEach(v => v.selected = false);
+    }
+
+    getClickedVertex(x: number, y: number): Vertice | null {
+        for(const v of this._vertices.reverse())
+            if(v.hasPoint(x, y))
+                return v;
+        return null;
+    }
 }
