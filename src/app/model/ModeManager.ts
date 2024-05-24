@@ -1,3 +1,6 @@
+import { Grafo } from "./Grafo";
+import { GraphRenderer } from "./GraphRenderer";
+
 export type Mode = 'move' | 'add-vertex' | 'select-vertex' | 'connect-vertices';
 
 const dataModeName = 'mode';
@@ -16,7 +19,7 @@ export class ModeManager
         private ctrl: HTMLElement
     ) {}
 
-    configModeBtns()
+    configModeBtns(grafo: Grafo, gh: GraphRenderer)
     {
         for(const child of this.ctrl.children) {
             const attrMode = child.getAttribute(dataMode);
@@ -25,7 +28,10 @@ export class ModeManager
                 child.addEventListener('click', () => {
                     this._mode = attrMode as Mode;
                     this.unselectAllModes();
+                    grafo.unselectAllVertices();
                     child.classList.add(selectedClass);
+
+                    gh.rerender();
                 });
         }
     }

@@ -4,8 +4,21 @@ export class Grafo
 {
     private _vertices: Vertice[] = Grafo.gerarGrafoPadrao();
 
+    private _selectedVertices: Vertice[] = [];
+
     get vertices() {
         return this._vertices;
+    }
+
+    get selectedVertices() {
+        return this._selectedVertices;
+    }
+
+    get selectedVertex(): Vertice | null {
+        //return this._vertices.filter(v => v.selected);
+        return this._selectedVertices.length !== 0
+            ? this._selectedVertices[this._selectedVertices.length - 1]
+            : null;
     }
 
     static gerarGrafoPadrao()
@@ -48,7 +61,7 @@ export class Grafo
         return vertices;
     }
 
-    limpar() {
+    reset() {
         this._vertices = [];
         Vertice.resetIndex();
     }
@@ -71,58 +84,40 @@ export class Grafo
 
         // Se o vértice clicado já tiver sido selecionado: desseleciona-o
         if(clicked.selected) {
-            clicked.selected = false;
+            this.unselectVertex(clicked);
         }
         else {
-            console.log(clicked);
-            console.log(clicked.selected);
-
-            const selectedVertices = this.getSelectedVertices();
-            console.log(selectedVertices);
+            const selectedVertex = this.selectedVertex;
 
             // Se houver vértice selecionado anterormente: conecta-o com o `clicked`
-            if(selectedVertices.length > 0)
+            if(selectedVertex)
             {
                 let valorAresta = Number(prompt("Valor da aresta:"));
                 if(!valorAresta || isNaN(valorAresta) || valorAresta <= 0)
                     valorAresta = 1;
 
-                selectedVertices[0].conectar(clicked, valorAresta, true);
+                selectedVertex.conectar(clicked, valorAresta, true);
                 this.unselectAllVertices();
             }
             // Se não houver vértice selecionado ainda: seleciona o clicado
-            else {
-                clicked.selected = true;
-            }
-        }
-
-        /*
-        // Se o vértice clicado tiver sido selecionado
-        if(selected.selected)
-        {
-            // Se já existir outro vértice selecionado
-            if(connectedVertices.length === 1)
-            {
-                
-            }
             else
-                connectedVertices.push(selected);
+                this.selectVertex(clicked);
         }
-        // Se o vértice clicado tiver sido desselecionado
-        else
-            connectedVertices = connectedVertices.filter(v => selected !== v);
-
-        gh.clear();
-        gh.render();
-        */
     }
 
-    getSelectedVertices(): Vertice[] {
-        return this._vertices.filter(v => v.selected);
+    selectVertex(v: Vertice) {
+        v.selected = true;
+        this._selectedVertices.push(v);
+    }
+
+    unselectVertex(v: Vertice) {
+        v.selected = false;
+        this._selectedVertices = this._selectedVertices.filter(_v => _v !== v);
     }
 
     unselectAllVertices() {
         this._vertices.forEach(v => v.selected = false);
+        this._selectedVertices = [];
     }
 
     getClickedVertex(x: number, y: number): Vertice | null {

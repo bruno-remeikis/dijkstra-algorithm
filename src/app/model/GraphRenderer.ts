@@ -8,13 +8,17 @@ interface Point {
 
 export class GraphRenderer
 {
-    private ctx: CanvasRenderingContext2D | null;
+    private static readonly FONT_SIZE = 14;
+    private static readonly  TEXT_ADJUSTMENT = 4;
+
+    // private ctx: CanvasRenderingContext2D | null;
 
     constructor(
-        private canvas: HTMLCanvasElement,
-        public grafo: Grafo| undefined = undefined
+        // private canvas: HTMLCanvasElement,
+        private ctx: CanvasRenderingContext2D,
+        public grafo: Grafo
     ) {
-        this.ctx = this.canvas.getContext("2d");
+        // this.ctx = this.canvas.getContext("2d");
     }
 
     private static calcCircleIntersection(center: Point, radius: number, point: Point): Point
@@ -98,26 +102,18 @@ export class GraphRenderer
     }
 
     private drawCircle(x: number, y: number, raio: number) {
-        if(this.ctx)
-            this.ctx.arc(x, y, raio, 0, 2 * Math.PI);
+        this.ctx.arc(x, y, raio, 0, 2 * Math.PI);
     }
     
     public clear() {
-        if(this.ctx)
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
     public render()
     {
-        if(!this.ctx || !this.grafo?.vertices)
-            return;
-
-        const fontSize = 14;
-        const textAdjustment = 4;
-
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
-        this.ctx.font = `${fontSize}px consolas`; // sans-serif
+        this.ctx.font = `${GraphRenderer.FONT_SIZE}px consolas`; // sans-serif
         this.ctx.lineWidth = 1;
 
         for(const v of this.grafo.vertices)
@@ -137,7 +133,7 @@ export class GraphRenderer
                     y: circleIntersectionPoint.y
                 };
 
-                // CBEÇA DA SETA DA ARESTA
+                // CABEÇA DA SETA DA ARESTA
 
                 if(a.direcional)
                 {
@@ -174,43 +170,50 @@ export class GraphRenderer
 
                 this.ctx.beginPath();
                 this.ctx.fillStyle = 'white';
-                this.drawCircle(xValor, yValor, fontSize / 2);
+                this.drawCircle(xValor, yValor, GraphRenderer.FONT_SIZE / 2);
                 this.ctx.fill();
 
                 this.ctx.beginPath();
                 this.ctx.fillStyle = 'black';
                 this.ctx.fillText(
                     a.valor + '',
-                    xValor - textAdjustment,
-                    yValor + textAdjustment
+                    xValor - GraphRenderer.TEXT_ADJUSTMENT,
+                    yValor + GraphRenderer.TEXT_ADJUSTMENT
                 );
                 this.ctx.closePath();
             }
         }
         
         for(const v of this.grafo.vertices)
-        {
-            // Vértice
-            this.ctx.beginPath();
-            this.ctx.fillStyle = v.selected ? 'blue' : (v.marcado ? 'red' : 'black');
-            this.drawCircle(v.x, v.y, Vertice.raio);
-            this.ctx.fill();
+            this.drawVertex(v);
+    }
 
-            // Nome dos vértice
-            this.ctx.beginPath();
-            this.ctx.fillStyle = 'white';
-            //ctx.font = 
-            this.ctx.fillText(
-                v.nome,
-                v.x - textAdjustment,
-                v.y + textAdjustment
-            );
-            this.ctx.closePath();
-        }
+    drawVertex(v: Vertice)
+    {
+        // Vértice
+        this.ctx.beginPath();
+        this.ctx.fillStyle = v.selected ? 'blue' : (v.marcado ? 'red' : 'black');
+        this.drawCircle(v.x, v.y, Vertice.raio);
+        this.ctx.fill();
+
+        // Nome dos vértice
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'white';
+        //ctx.font = 
+        this.ctx.fillText(
+            v.nome,
+            v.x - GraphRenderer.TEXT_ADJUSTMENT,
+            v.y + GraphRenderer.TEXT_ADJUSTMENT
+        );
+        this.ctx.closePath();
     }
 
     rerender() {
         this.clear();
         this.render();
+    }
+
+    teste(x: number, y: number) {
+        this.drawVertex(new Vertice(20, '*', x, y));
     }
 }

@@ -1,42 +1,8 @@
 import { Vertice } from "./app/model/Vertice";
-import { DijstraAlgorithm } from "./app/model/DjikstraAlgorithm";
+import { DijkstraAlgorithm } from "./app/model/DjikstraAlgorithm";
 import { GraphRenderer } from "./app/model/GraphRenderer";
 import { Grafo } from "./app/model/Grafo";
 import { ModeManager } from "./app/model/ModeManager";
-
-// type Modo = 'mover' | 'add-vertice' | 'select-vertice' | 'connect-vertices';
-
-// let modo: Modo | undefined;
-// selectModo('mover');
-
-let connectedVertices: Vertice[] = [];
-
-/*function configModeBtn(nomeModo: Modo) {
-    console.log(nomeModo);
-
-    const el = document.getElementById('btn-modo-' + nomeModo);
-    if(el)
-        el.onclick = () =>
-        {
-            if(modo !== nomeModo)
-            {
-                modo = nomeModo;
-
-                // Se mudou para um/outro modo de seleção:
-                // remove os vértices que haviam sido selecionados
-                if(modo !== 'select-vertice' && modo !== 'connect-vertices')
-                    clearSelected();
-            }
-        }
-}*/
-
-function clearSelected() {
-    while(connectedVertices.length > 0) {
-        const v = connectedVertices.pop();
-        if(v)
-            v.selected = false;
-    }
-}
 
 // Elementos HTML
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -46,8 +12,8 @@ const ctrl = document.getElementById('control-buttons');
 // Grafo
 const grafo: Grafo = new Grafo();
 // Renderizador
-const gh: GraphRenderer = new GraphRenderer(canvas, grafo);
-
+const ctx = canvas.getContext("2d")!;
+const gh: GraphRenderer = new GraphRenderer(ctx, grafo);
 
 main();
 
@@ -60,9 +26,8 @@ function main()
 
     // Djikstra
 
-    let djikstraAlgorithm: DijstraAlgorithm | null = DijstraAlgorithm.process(grafo, raiz);
-    if(djikstraAlgorithm)
-        djikstraAlgorithm.calculatePath(destino);
+    let djikstraAlgorithm: DijkstraAlgorithm = DijkstraAlgorithm.process(grafo, raiz);
+    djikstraAlgorithm.calculatePath(destino);
 
     // Eventos
 
@@ -72,10 +37,11 @@ function main()
     }
 
     const modeManager: ModeManager = new ModeManager(ctrl);
-    modeManager.configModeBtns();
+    modeManager.configModeBtns(grafo, gh);
     modeManager.selectMode('move');
 
     document.getElementById('btn-clean')?.addEventListener('click', () => limparTudo(gh));
+    document.getElementById('btn-delete')?.addEventListener('click', () => deletarSelecionados(gh));
 
     // Iniciar
 
@@ -101,20 +67,71 @@ function main()
         const x = event.offsetX;
         const y = event.offsetY;
 
+        gh.rerender();
+
         switch(modeManager.mode)
         {
-            case 'add-vertex':
+            case 'move': {
+                let v = grafo.selectedVertex;
+                if(v) {
+                    grafo.unselectVertex(v);
+                    gh.rerender();
+                }
+                else {
+                    v = grafo.getClickedVertex(x, y);
+                    if(v) {
+                        grafo.selectVertex(v);
+                    }
+                }
+                break;
+            }
+            case 'select-vertex': {
+                const v = grafo.getClickedVertex(x, y);
+                if(v) {
+                    if(v.selected)
+                        grafo.unselectVertex(v);
+                    else
+                        grafo.selectVertex(v);
+                }
+                gh.rerender();
+                break;
+            }
+            case 'add-vertex': {
                 const v = grafo.addVertex(x, y);
                 if(v)
                     gh.rerender();
                 break;
-
-            case 'connect-vertices':
+            }
+            case 'connect-vertices': {
                 grafo.connectVertices(x, y);
                 gh.rerender();
                 break;
+            }
         }
     };
+
+    canvas.onmousemove = (event) =>
+    {
+        const x = event.offsetX;
+        const y = event.offsetY;
+
+        switch(modeManager.mode)
+        {
+            case 'move':
+                const v = grafo.selectedVertex;
+                if(v) {
+                    v.x = x;
+                    v.y = y;
+                    gh.rerender();
+                }
+                break;
+
+            /*case 'add-vertex':
+                gh.rerender();
+                gh.teste(x, y);
+                break;*/
+        }
+    }
 
     //! Analizar trexos semelhantes a `grafo.vertices`
     inpOrigem.onkeydown = (event) =>
@@ -133,7 +150,7 @@ function main()
 
             try {
                 if(raiz >= 0 && raiz < grafo.vertices.length) {
-                    const alg = DijstraAlgorithm.process(grafo, raiz);
+                    const alg = DijkstraAlgorithm.process(grafo, raiz);
                     if(alg) {
                         djikstraAlgorithm = alg;
                         alg.calculatePath(destino);
@@ -181,7 +198,7 @@ function configCanvasClickEvent() {
 function limparTudo(gh: GraphRenderer) {
     if(window.confirm("Deseja mesmo apagar tudo?"))
     {
-        grafo.limpar();
+        grafo.reset();
         gh.rerender();
     }
 
@@ -193,4 +210,10 @@ function limparTudo(gh: GraphRenderer) {
     inpOrigem.value = '';
     inpDestino.value = '';
     gh.clear();*/
+}
+
+function deletarSelecionados(gh: GraphRenderer) {
+    // const vertices = grafo.selectedVertices;
+    // grafo.removeVertex()
+    // grafo.removeVertices()
 }

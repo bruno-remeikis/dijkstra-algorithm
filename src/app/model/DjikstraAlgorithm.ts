@@ -9,7 +9,7 @@ interface Djikstra {
     ant: number[];
 }
 
-export class DijstraAlgorithm
+export class DijkstraAlgorithm
 {
     private static NENHUM_CAMINHO = 0;
     private static ALGUM_CAMINHO = 1;
@@ -26,10 +26,10 @@ export class DijstraAlgorithm
      * @param raiz (number) index do Vertice raiz do algoritmo
      * @returns (DjikstraAltorithm) objeto capaz de encontrar a melhor rota até um vértice, partindo da raiz especificada
      */
-    public static process(grafo: Grafo, raiz: number): DijstraAlgorithm | null
+    public static process(grafo: Grafo, raiz: number): DijkstraAlgorithm
     {
         if(raiz < 0 || raiz >= grafo.vertices.length)
-            return null;
+            throw new Error("Houve um erro ao tentar processar o algoritmo de Dijkstra");
 
         // INICIALIZAR VETORES
 
@@ -45,7 +45,7 @@ export class DijstraAlgorithm
         }
 
         dist[raiz] = 0;
-        marca[raiz] = DijstraAlgorithm.ALGUM_CAMINHO;
+        marca[raiz] = DijkstraAlgorithm.ALGUM_CAMINHO;
 
         // RODAR ALGORITMO
 
@@ -57,7 +57,7 @@ export class DijstraAlgorithm
             // (Vértice com marca 1 (ALGUM_CAMINHO) e menor distância acumulada)
             let menor = Number.MAX_SAFE_INTEGER;
             for(let i = 0; i < grafo.vertices.length; i++)
-                if(marca[i] == DijstraAlgorithm.ALGUM_CAMINHO && dist[i] < menor) {
+                if(marca[i] == DijkstraAlgorithm.ALGUM_CAMINHO && dist[i] < menor) {
                     menor = dist[i];
                     atual = i;
                 }
@@ -66,7 +66,7 @@ export class DijstraAlgorithm
                 break;
             
             // Atualiza a marca do vértice principal atual
-            marca[atual] = DijstraAlgorithm.MELHOR_CAMINHO;
+            marca[atual] = DijkstraAlgorithm.MELHOR_CAMINHO;
             const v: Vertice = grafo.vertices[atual];
             
             // Visita vértices adjacentes
@@ -82,23 +82,23 @@ export class DijstraAlgorithm
                     index = (a.destino == v ? a.origem : a.destino).index;
                 
                 // Caso o vértice já tenha sido o principal em algum momento, ignora-o
-                if(marca[index] == DijstraAlgorithm.MELHOR_CAMINHO)
+                if(marca[index] == DijkstraAlgorithm.MELHOR_CAMINHO)
                     continue;
                 
                 // Calcula distância acumulada
                 let distancia: number = dist[atual] + a.valor;
                 
-                if(marca[index] == DijstraAlgorithm.NENHUM_CAMINHO || distancia < dist[index])
+                if(marca[index] == DijkstraAlgorithm.NENHUM_CAMINHO || distancia < dist[index])
                 {
                     dist[index] = distancia; 
-                    marca[index] = DijstraAlgorithm.ALGUM_CAMINHO;
+                    marca[index] = DijkstraAlgorithm.ALGUM_CAMINHO;
                     ant[index] = v.index; // Garda de onde veio (veio do vértice principal atual)
                 }
             }
         }
 
         const djikstra: Djikstra = { raiz, dist, marca, ant };
-        return new DijstraAlgorithm(grafo, djikstra);
+        return new DijkstraAlgorithm(grafo, djikstra);
     }
 
     /**
