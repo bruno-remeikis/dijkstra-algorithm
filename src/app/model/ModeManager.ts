@@ -16,12 +16,12 @@ export class ModeManager
     }
 
     constructor(
-        private ctrl: HTMLElement
+        private container: HTMLElement
     ) {}
 
-    configModeBtns(grafo: Grafo, gh: GraphRenderer)
+    configModeBtns(grafo: Grafo, gh: GraphRenderer, fn?: Function, fns?: {[name: string]: Function})
     {
-        for(const child of this.ctrl.children) {
+        for(const child of this.container.children) {
             const attrMode = child.getAttribute(dataMode);
 
             if(attrMode)
@@ -30,6 +30,12 @@ export class ModeManager
                     this.unselectAllModes();
                     grafo.unselectAllVertices();
                     child.classList.add(selectedClass);
+
+                    if(fn)
+                        fn();
+
+                    if(fns && fns[attrMode])
+                        fns[attrMode]();
 
                     gh.rerender();
                 });
@@ -43,7 +49,7 @@ export class ModeManager
         if(this._mode === undefined)
             return;
 
-        for(const child of this.ctrl.children) {
+        for(const child of this.container.children) {
             const attrModo = child.getAttribute(dataMode);
 
             if(attrModo && attrModo === newMode) {
@@ -56,7 +62,7 @@ export class ModeManager
 
     unselectAllModes()
     {
-        for(const child of this.ctrl.children)
+        for(const child of this.container.children)
             child.classList.remove(selectedClass);
     }
 }

@@ -63,4 +63,12 @@ export class Vertice
                 a.marcada = false;
         }
     }
+
+    // deleteRelatedEdges() {
+    //     this.arestas = this.arestas.filter(e => e.origem !== this && e.destino !== this);
+    // }
+
+    removeConnectionsWith(otherVertex: Vertice) {
+        this.arestas = this.arestas.filter(c => c.origem !== otherVertex && c.destino !== otherVertex);
+    }
 }

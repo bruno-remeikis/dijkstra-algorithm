@@ -8,9 +8,18 @@ import { ModeManager } from "./app/model/ModeManager";
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const inpOrigem = document.getElementById('origem') as HTMLInputElement;
 const inpDestino = document.getElementById('destino') as HTMLInputElement;
-const ctrl = document.getElementById('control-buttons');
+// Main buttons
+const mainBtns = document.getElementById('main-buttons');
+const btnClean = document.getElementById('btn-clean');
+// Control buttons
+const controlBtns = document.getElementById('control-buttons');
+const btnSelectAll = document.getElementById('btn-select-all');
+const btnUnunselectAll = document.getElementById('btn-select-all');
+const btnDelete = document.getElementById('btn-delete');
+
 // Grafo
 const grafo: Grafo = new Grafo();
+
 // Renderizador
 const ctx = canvas.getContext("2d")!;
 const gh: GraphRenderer = new GraphRenderer(ctx, grafo);
@@ -31,17 +40,26 @@ function main()
 
     // Eventos
 
-    if(!ctrl) {
+    if(!mainBtns) {
         alert('Ops. Houve um problema ao tentarmos configurar os modos de manipulação do grafo.')
         return;
     }
 
-    const modeManager: ModeManager = new ModeManager(ctrl);
-    modeManager.configModeBtns(grafo, gh);
+    const modeManager: ModeManager = new ModeManager(mainBtns);
+    modeManager.configModeBtns(grafo, gh, () => {
+        controlBtns?.classList.remove('visible');
+    }, {
+        'select-vertex': () => controlBtns?.classList.add('visible')
+    });
     modeManager.selectMode('move');
 
-    document.getElementById('btn-clean')?.addEventListener('click', () => limparTudo(gh));
-    document.getElementById('btn-delete')?.addEventListener('click', () => deletarSelecionados(gh));
+    btnClean?.addEventListener('click', () => limparTudo(gh));
+
+    btnSelectAll?.addEventListener('click', () => selectAll());
+
+    btnUnunselectAll?.addEventListener('click', () => unselectAll());
+    
+    btnDelete?.addEventListener('click', () => deletarSelecionados(gh));
 
     // Iniciar
 
@@ -81,6 +99,7 @@ function main()
                     v = grafo.getClickedVertex(x, y);
                     if(v) {
                         grafo.selectVertex(v);
+                        gh.rerender();
                     }
                 }
                 break;
@@ -92,6 +111,11 @@ function main()
                         grafo.unselectVertex(v);
                     else
                         grafo.selectVertex(v);
+
+                    if(grafo.haveSelectedVertices())
+                        controlBtns?.classList.add('enabled');
+                    else
+                        controlBtns?.classList.remove('enabled');
                 }
                 gh.rerender();
                 break;
@@ -212,8 +236,20 @@ function limparTudo(gh: GraphRenderer) {
     gh.clear();*/
 }
 
+function selectAll() {
+    grafo.selectAllVertices();
+    gh.rerender();
+}
+
+function unselectAll() {
+    grafo.unselectAllVertices();
+    gh.rerender();
+}
+
 function deletarSelecionados(gh: GraphRenderer) {
-    // const vertices = grafo.selectedVertices;
-    // grafo.removeVertex()
-    // grafo.removeVertices()
+    const vertices = grafo.selectedVertices;
+    if(!vertices)
+        return;
+    grafo.removeVertices(vertices);
+    gh.rerender();
 }

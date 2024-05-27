@@ -21,18 +21,67 @@ h1 {
     text-align: center;
     margin-bottom: 0.6rem;
 }
+
+.main-container {
+    display: flex;
+    width: 100svw;
+}
+.main-container .side {
+    flex: 1;
+}
 canvas {
     border: 1px solid rgba(0, 0, 0, 0.2);
     background-color: /*rgb(161, 216, 255);*/ rgba(255, 255, 255, 0.2);
     border-radius: 0.7rem;
-    border-top-left-radius: 0;;
+    /* border-top-left-radius: 0; */
 }
 
-#control-buttons {
+.left-side {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+
+    margin-right: 0.4rem;
+}
+.right-side {
+    margin-left: 0.4rem;
+}
+.circle-buttons {
+    --btn-size: 2rem;
+
+    display: grid;
+    grid-template-columns: repeat(2, var(--btn-size));
+    gap: 0.2rem;
+}
+.circle-buttons button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+
+    width: var(--btn-size);
+    height: var(--btn-size);
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 99rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.circle-buttons button:hover {
+    opacity: 0.8;
+}
+.circle-buttons button.selected {
+    background-color: red;
+}
+
+/*
+.circle-buttons {
     display: flex;
     gap: 0.1rem;
 }
-#control-buttons button {
+.circle-buttons button {
     display: block;
 
     padding: 0.4rem 0.4rem 0.2rem 0.4rem;
@@ -47,13 +96,14 @@ canvas {
     cursor: pointer;
     transition: all 0.2s;
 }
-#control-buttons button:hover {
+.circle-buttons button:hover {
     opacity: 0.8;
 }
-#control-buttons button.selected {
+.circle-buttons button.selected {
     background-color: red;
 }
-/*#control-buttons button::before {
+*/
+/*.circle-buttons button::before {
     content: "\002b";
 }*/
 
@@ -83,4 +133,38 @@ canvas {
     text-align: center;
     font-size: 1.2rem;
     box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+#control-buttons {
+    visibility: hidden;
+}
+#control-buttons.visible {
+    visibility: visible;
+}
+#control-buttons .hidden {
+    visibility: hidden;
+}
+#control-buttons.enabled .hidden {
+    visibility: visible;
+}
+#control-buttons button {
+    display: block;
+
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+
+    width: var(--btn-size);
+    height: var(--btn-size);
+
+    padding: 0.2rem 0.4rem;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 99rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#control-buttons button:not(:first-child) {
+    margin-top: 0.2rem;
+}
+#control-buttons button:hover {
+    opacity: 0.8;
 }

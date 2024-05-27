@@ -106,18 +106,39 @@ export class Grafo
     }
 
     selectVertex(v: Vertice) {
-        v.selected = true;
-        this._selectedVertices.push(v);
+        if(!v.selected) {
+            v.selected = true;
+            this._selectedVertices.push(v);
+        }
+    }
+
+    selectVertices(vertices: Vertice[]) {
+        vertices.forEach(v => this.selectVertex(v));
     }
 
     unselectVertex(v: Vertice) {
-        v.selected = false;
-        this._selectedVertices = this._selectedVertices.filter(_v => _v !== v);
+        if(v.selected) {
+            v.selected = false;
+            this._selectedVertices = this._selectedVertices.filter(_v => _v !== v);
+        }
     }
 
-    unselectAllVertices() {
+    unselectVertices(vertices: Vertice[]) {
+        vertices.forEach(v => this.unselectVertex(v));
+    }
+
+    selectAllVertices(): void {
+        this._vertices.forEach(v => v.selected = true);
+        this._selectedVertices = this._vertices;
+    }
+
+    unselectAllVertices(): void {
         this._vertices.forEach(v => v.selected = false);
         this._selectedVertices = [];
+    }
+
+    haveSelectedVertices(): boolean {
+        return this._selectedVertices.length > 0;
     }
 
     getClickedVertex(x: number, y: number): Vertice | null {
@@ -125,5 +146,29 @@ export class Grafo
             if(v.hasPoint(x, y))
                 return v;
         return null;
+    }
+
+    /**
+     * Remove os vértices contidos no array, bem como as arestas que os possuem como origem ou destino
+     * @param vertices Vértices a serem removidos do grafo
+     */
+    removeVertices(vertices: Vertice[]): void {
+        this._vertices = this._vertices.filter(v => {
+            if(vertices.includes(v)) {
+                this.disconnectVertex(v);
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Remove arestas que possuem o vértice `v` como origem ou destino
+     * @param v Vértice a ser desconectado
+     */
+    disconnectVertex(v: Vertice): void {
+        this._vertices.forEach(v2 => {
+            v2.removeConnectionsWith(v);
+        });
     }
 }
