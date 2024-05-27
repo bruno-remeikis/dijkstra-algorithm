@@ -1,15 +1,12 @@
+import { Point } from "../types/Point";
+import { Aresta } from "./Aresta";
 import { Grafo } from "./Grafo";
 import { Vertice } from "./Vertice";
-
-interface Point {
-    x: number;
-    y: number;
-}
 
 export class GraphRenderer
 {
     private static readonly FONT_SIZE = 14;
-    private static readonly  TEXT_ADJUSTMENT = 4;
+    private static readonly TEXT_ADJUSTMENT = 4;
 
     // private ctx: CanvasRenderingContext2D | null;
 
@@ -19,6 +16,138 @@ export class GraphRenderer
         public grafo: Grafo
     ) {
         // this.ctx = this.canvas.getContext("2d");
+    }
+
+    rerender(): void {
+        this.clear();
+        this.render();
+    }
+    
+    public clear(): void {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    }
+
+    public render(): void
+    {
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        this.ctx.font = `${GraphRenderer.FONT_SIZE}px consolas`; // sans-serif
+        this.ctx.lineWidth = 1;
+
+        for(const v of this.grafo.vertices)
+        {
+            for(const a of v.arestas)
+            {
+                // Calcula o ponto de intersecção entre o círculo (Vértice) e a reta origem-destino
+                const circleIntersectionPoint = GraphRenderer.calcCircleIntersection(
+                    { x: a.destino.x, y: a.destino.y },
+                    Vertice.raio,
+                    { x: a.origem.x, y: a.origem.y }
+                );
+
+                // Define o fim da linha da aresta, para caso ela tenha uma cabeça de seta
+                let pontoFimLinha: Point = {
+                    x: circleIntersectionPoint.x,
+                    y: circleIntersectionPoint.y
+                };
+
+                // CABEÇA DA SETA DA ARESTA
+
+                if(a.direcional)
+                {
+                    // Calcula os pontos do triângulo que forma a cabeça da seta
+                    const { pontosTriangulo: pontos, pontoCentroBase } = GraphRenderer.calcTrianglePoints(
+                        { x: a.origem.x, y: a.origem.y },
+                        { x: circleIntersectionPoint.x, y: circleIntersectionPoint.y },
+                        12, 12
+                    );
+
+                    this.drawArrowHead(a, pontos);
+
+                    // Sobrescreve a variável para que a linha não passe por baixo da cabeça da seta
+                    pontoFimLinha = { x: pontoCentroBase.x, y: pontoCentroBase.y };
+                }
+
+                // ARESTA
+                this.drawEdge(a, pontoFimLinha);
+
+                // VALOR DA ARESTA
+                this.drawEdgeValue(a, circleIntersectionPoint);
+            }
+        }
+        
+        for(const v of this.grafo.vertices)
+            this.drawVertex(v);
+    }
+
+    private drawCircle(x: number, y: number, raio: number): void {
+        this.ctx.arc(x, y, raio, 0, 2 * Math.PI);
+    }
+
+    private drawVertex(v: Vertice): void
+    {
+        const status = v.selected ? 'selected' : (v.marcado ? 'marked' : 'default');
+
+        // Vértice
+        this.ctx.beginPath();
+        this.ctx.fillStyle = Vertice.STYLE[status].color;
+        this.ctx.strokeStyle = Vertice.STYLE[status].borderColor;
+        this.ctx.lineWidth = 1;
+        this.drawCircle(v.x, v.y, Vertice.raio);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        // Nome dos vértice
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'white';
+        //ctx.font = 
+        this.ctx.fillText(
+            v.nome,
+            v.x - GraphRenderer.TEXT_ADJUSTMENT,
+            v.y + GraphRenderer.TEXT_ADJUSTMENT
+        );
+        this.ctx.closePath();
+    }
+
+    private drawEdge(a: Aresta, pontoFimLinha: Point): void {
+        const status = a.marcada ? 'marked' : 'default';
+
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = Aresta.STYLE[status].color;
+        this.ctx.lineWidth = a.marcada ? 3 : 1;
+        this.ctx.moveTo(a.origem.x, a.origem.y);
+        this.ctx.lineTo(pontoFimLinha.x, pontoFimLinha.y);
+        this.ctx.stroke();
+    }
+
+    private drawEdgeValue(a: Aresta, circleIntersectionPoint: Point): void {
+        const xValor = (a.origem.x + circleIntersectionPoint.x) / 2;
+        const yValor = (a.origem.y + circleIntersectionPoint.y) / 2
+
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'white';
+        this.drawCircle(xValor, yValor, GraphRenderer.FONT_SIZE / 2);
+        this.ctx.fill();
+
+        this.ctx.beginPath();
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillText(
+            a.valor + '',
+            xValor - GraphRenderer.TEXT_ADJUSTMENT,
+            yValor + GraphRenderer.TEXT_ADJUSTMENT
+        );
+        this.ctx.closePath();
+    }
+
+    private drawArrowHead(a: Aresta, points: Point[]): void {
+        const status = a.marcada ? 'marked' : 'default';
+
+        this.ctx.beginPath();
+        this.ctx.fillStyle = Aresta.STYLE[status].color;
+        this.ctx.moveTo(points[0].x, points[0].y);
+        this.ctx.lineTo(points[1].x, points[1].y);
+        this.ctx.lineTo(points[2].x, points[2].y);
+        this.ctx.fill();
     }
 
     private static calcCircleIntersection(center: Point, radius: number, point: Point): Point
@@ -99,121 +228,5 @@ export class GraphRenderer
             ],
             pontoCentroBase: { x: pontoC[0], y: pontoC[1] }
         };
-    }
-
-    private drawCircle(x: number, y: number, raio: number) {
-        this.ctx.arc(x, y, raio, 0, 2 * Math.PI);
-    }
-    
-    public clear() {
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    public render()
-    {
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
-        this.ctx.font = `${GraphRenderer.FONT_SIZE}px consolas`; // sans-serif
-        this.ctx.lineWidth = 1;
-
-        for(const v of this.grafo.vertices)
-        {
-            for(const a of v.arestas)
-            {
-                // Calcula o ponto de intersecção entre o círculo (Vértice) e a reta origem-destino
-                const circleIntersectionPoint = GraphRenderer.calcCircleIntersection(
-                    { x: a.destino.x, y: a.destino.y },
-                    Vertice.raio,
-                    { x: a.origem.x, y: a.origem.y }
-                );
-
-                // Define o fim da linha da aresta, para caso ela tenha uma cabeça de seta
-                let pontoFimLinha: Point = {
-                    x: circleIntersectionPoint.x,
-                    y: circleIntersectionPoint.y
-                };
-
-                // CABEÇA DA SETA DA ARESTA
-
-                if(a.direcional)
-                {
-                    // Calcula os pontos do triângulo que forma a cabeça da seta
-                    const { pontosTriangulo: pontos, pontoCentroBase } = GraphRenderer.calcTrianglePoints(
-                        { x: a.origem.x, y: a.origem.y },
-                        { x: circleIntersectionPoint.x, y: circleIntersectionPoint.y },
-                        12, 12
-                    );
-                    this.ctx.beginPath();
-                    this.ctx.fillStyle = a.marcada ? 'red' : 'black';
-                    this.ctx.moveTo(pontos[0].x, pontos[0].y);
-                    this.ctx.lineTo(pontos[1].x, pontos[1].y);
-                    this.ctx.lineTo(pontos[2].x, pontos[2].y);
-                    this.ctx.fill();
-
-                    // Sobrescreve a variável para que a linha não passe por baixo da cabeça da seta
-                    pontoFimLinha = { x: pontoCentroBase.x, y: pontoCentroBase.y };
-                }
-
-                // ARESTA
-
-                this.ctx.beginPath();
-                this.ctx.strokeStyle = a.marcada ? 'red' : 'black';
-                this.ctx.lineWidth = a.marcada ? 3 : 1;
-                this.ctx.moveTo(a.origem.x, a.origem.y);
-                this.ctx.lineTo(pontoFimLinha.x, pontoFimLinha.y);
-                this.ctx.stroke();
-
-                // VALOR DA ARESTA
-
-                const xValor = (a.origem.x + circleIntersectionPoint.x) / 2;
-                const yValor = (a.origem.y + circleIntersectionPoint.y) / 2
-
-                this.ctx.beginPath();
-                this.ctx.fillStyle = 'white';
-                this.drawCircle(xValor, yValor, GraphRenderer.FONT_SIZE / 2);
-                this.ctx.fill();
-
-                this.ctx.beginPath();
-                this.ctx.fillStyle = 'black';
-                this.ctx.fillText(
-                    a.valor + '',
-                    xValor - GraphRenderer.TEXT_ADJUSTMENT,
-                    yValor + GraphRenderer.TEXT_ADJUSTMENT
-                );
-                this.ctx.closePath();
-            }
-        }
-        
-        for(const v of this.grafo.vertices)
-            this.drawVertex(v);
-    }
-
-    drawVertex(v: Vertice)
-    {
-        // Vértice
-        this.ctx.beginPath();
-        this.ctx.fillStyle = v.selected ? 'blue' : (v.marcado ? 'red' : 'black');
-        this.drawCircle(v.x, v.y, Vertice.raio);
-        this.ctx.fill();
-
-        // Nome dos vértice
-        this.ctx.beginPath();
-        this.ctx.fillStyle = 'white';
-        //ctx.font = 
-        this.ctx.fillText(
-            v.nome,
-            v.x - GraphRenderer.TEXT_ADJUSTMENT,
-            v.y + GraphRenderer.TEXT_ADJUSTMENT
-        );
-        this.ctx.closePath();
-    }
-
-    rerender() {
-        this.clear();
-        this.render();
-    }
-
-    teste(x: number, y: number) {
-        this.drawVertex(new Vertice(20, '*', x, y));
     }
 }

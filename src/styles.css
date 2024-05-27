@@ -8,18 +8,78 @@ html, body {
     color: /*rgb(0, 43, 74);*/ rgba(255, 255, 255, 0.82);
 }
 
+:root {
+    --blue-50: #E5EFFF;
+    --blue-100: #CCDFFF;
+    --blue-200: #99BEFF;
+    --blue-300: #669EFF;
+    --blue-400: #337EFF;
+    --blue-500: #005EFF;
+    --blue-600: #004BCC;
+    --blue-700: #003899;
+    --blue-800: #002566;
+    --blue-900: #001333;
+    --blue-950: #000919;
+
+    --green-50: #E9FBE9;
+    --green-100: #CFF7CF;
+    --green-200: #9FEF9F;
+    --green-300: #6FE76F;
+    --green-400: #3EDF3E;
+    --green-500: #21C721;
+    --green-600: #1A9E1A;
+    --green-700: #147614;
+    --green-800: #0D4F0D;
+    --green-900: #072707;
+    --green-950: #041604;
+}
+
 main {
     min-height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    background: linear-gradient(#e66465, #9198e5);
-    /* background: linear-gradient(#4c0000, #292b40); */
+
+    /* background: linear-gradient(#e66465, #9198e5); */
+
+    /* background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(7,55,151,1) 100%, rgba(0,212,255,1) 100%); */
+
+    /*
+    background: rgb(230,230,230);
+    background: linear-gradient(90deg, rgba(230,230,230,1) 0%, rgba(212,184,184,1) 50%, rgba(198,198,198,1) 100%);
+
+    background: rgb(230,230,230);
+    background: linear-gradient(45deg, rgba(230,230,230,1) 0%, rgba(167,167,167,1) 41%, rgba(222,174,174,1) 68%, rgba(255,98,98,1) 100%);
+
+    background-image: linear-gradient(
+        45deg,
+        hsl(209deg 100% 46%) 0%,
+        hsl(216deg 81% 58%) 8%,
+        hsl(219deg 81% 64%) 15%,
+        hsl(221deg 80% 68%) 23%,
+        hsl(223deg 80% 72%) 31%,
+        hsl(224deg 80% 76%) 38%,
+        hsl(226deg 80% 79%) 46%,
+        hsl(227deg 81% 82%) 54%,
+        hsl(228deg 81% 85%) 62%,
+        hsl(228deg 81% 88%) 69%,
+        hsl(229deg 81% 91%) 77%,
+        hsl(230deg 82% 94%) 85%,
+        hsl(230deg 82% 97%) 92%,
+        hsl(0deg 0% 100%) 100%
+    );
+    */
+
+    background: rgb(216, 216, 216);
+    /* background: rgb(8, 25, 51); */
 }
 h1 {
     text-align: center;
     margin-bottom: 0.6rem;
+    /* clip-path: ; */
+    text-shadow: 1px 1px 10px black;
 }
 
 .main-container {
@@ -59,7 +119,7 @@ canvas {
     justify-content: center;
 
     background-color: rgba(255, 255, 255, 0.2);
-    color: white;
+    /* color: white; */
 
     width: var(--btn-size);
     height: var(--btn-size);
@@ -73,7 +133,8 @@ canvas {
     opacity: 0.8;
 }
 .circle-buttons button.selected {
-    background-color: red;
+    background-color: var(--blue-500);
+    color: var(--blue-50);
 }
 
 /*

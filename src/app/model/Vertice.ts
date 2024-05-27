@@ -1,7 +1,14 @@
+import { StyleMap } from "../types/StyleProps";
 import { Aresta } from "./Aresta";
 
 export class Vertice
 {
+    public static readonly STYLE: StyleMap = {
+        default:  { color: '#212d38', borderColor: 'black' },
+        selected: { color: '#337EFF', borderColor: '#005EFF' },
+        marked:   { color: '#21C721', borderColor: '#1A9E1A' }
+    };
+
     private static nextIndex = 0;
     public static readonly raio = 20;
 

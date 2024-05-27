@@ -25,7 +25,7 @@ export class Grafo
     {
         const adjMatrix = [
             [  0,  2,  0,  1,  0,  0,  0, ],
-            [  0,  0,  0,  3, 10,  0,  0, ],
+            [  0,  0,  0,  3,  9,  0,  0, ],
             [  4,  0,  0,  0,  0,  5,  0, ],
             [  0,  0,  2,  0,  2,  8,  4, ],
             [  0,  0,  0,  0,  0,  0,  6, ],
@@ -112,15 +112,15 @@ export class Grafo
         }
     }
 
-    selectVertices(vertices: Vertice[]) {
-        vertices.forEach(v => this.selectVertex(v));
-    }
-
     unselectVertex(v: Vertice) {
         if(v.selected) {
             v.selected = false;
             this._selectedVertices = this._selectedVertices.filter(_v => _v !== v);
         }
+    }
+
+    selectVertices(vertices: Vertice[]) {
+        vertices.forEach(v => this.selectVertex(v));
     }
 
     unselectVertices(vertices: Vertice[]) {
