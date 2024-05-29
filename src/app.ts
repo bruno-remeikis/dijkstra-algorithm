@@ -1,21 +1,21 @@
-import { Vertice } from "./app/model/Vertice";
-import { DijkstraAlgorithm } from "./app/model/DjikstraAlgorithm";
-import { GraphRenderer } from "./app/model/GraphRenderer";
-import { Grafo } from "./app/model/Grafo";
-import { ModeManager } from "./app/model/ModeManager";
+import { Vertice } from "./app/classes/graph/Vertice";
+import { DijkstraAlgorithm } from "./app/classes/algorithms/DjikstraAlgorithm";
+import { GraphRenderer } from "./app/classes/graphics/GraphRenderer";
+import { Grafo } from "./app/classes/graph/Grafo";
+import { ModeManager } from "./app/classes/managers/ModeManager";
 
 // Elementos HTML
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const inpOrigem = document.getElementById('origem') as HTMLInputElement;
 const inpDestino = document.getElementById('destino') as HTMLInputElement;
 // Main buttons
-const mainBtns = document.getElementById('main-buttons');
-const btnClean = document.getElementById('btn-clean');
+const mainBtns = document.getElementById('main-buttons') as HTMLDivElement;
+const btnClean = document.getElementById('btn-clean') as HTMLButtonElement;
 // Control buttons
-const controlBtns = document.getElementById('control-buttons');
-const btnSelectAll = document.getElementById('btn-select-all');
-const btnUnselectAll = document.getElementById('btn-unselect-all');
-const btnDelete = document.getElementById('btn-delete');
+const controlBtns = document.getElementById('control-buttons') as HTMLDivElement;
+const btnSelectAll = document.getElementById('btn-select-all') as HTMLButtonElement;
+const btnUnselectAll = document.getElementById('btn-unselect-all') as HTMLButtonElement;
+const btnDelete = document.getElementById('btn-delete') as HTMLButtonElement;
 
 // Grafo
 const grafo: Grafo = new Grafo();
@@ -47,16 +47,19 @@ function main()
 
     const modeManager: ModeManager = new ModeManager(mainBtns);
     modeManager.configModeBtns(grafo, gh, () => {
-        controlBtns?.classList.remove('visible');
+        controlBtns.classList.remove('visible');
     }, {
-        'select-vertex': () => controlBtns?.classList.add('visible')
+        'select-vertex': () => controlBtns.classList.add('visible')
     });
     modeManager.selectMode('move');
 
-    btnClean?.addEventListener('click', () => limparTudo(gh));
-    btnSelectAll?.addEventListener('click', () => selectAll());
-    btnUnselectAll?.addEventListener('click', () => unselectAll());
-    btnDelete?.addEventListener('click', () => deletarSelecionados(gh));
+    btnClean.onclick = () => limparTudo(gh);
+    btnSelectAll.onclick = selectAll;
+    btnUnselectAll.onclick = unselectAll;
+    btnDelete.onclick = () => {
+        if(window.confirm("Deseja mesmo apagar todos estes elementos?"))
+            deletarSelecionados(gh);
+    };
 
     // Iniciar
 
@@ -96,6 +99,13 @@ function main()
 
                     switchControlButtonsVisibility();
                 }
+                else {
+                    const a = grafo.getClickedEdge(x, y);
+                    if(a) {
+                        a.selected = !a.selected;
+                        switchControlButtonsVisibility();
+                    }
+                }
                 gh.rerender();
                 break;
             }
@@ -123,8 +133,7 @@ function main()
             case 'move':
                 const v = grafo.selectedVertex;
                 if(v) {
-                    v.x = x;
-                    v.y = y;
+                    v.move(x, y);
                     gh.rerender();
                 }
                 break;
@@ -199,15 +208,14 @@ function configCanvasClickEvent() {
 }
 
 function switchControlButtonsVisibility() {
-    if(grafo.haveSelectedVertices())
+    if(grafo.haveSelectedElements())
         controlBtns?.classList.add('enabled');
     else
         controlBtns?.classList.remove('enabled');
 }
 
 function limparTudo(gh: GraphRenderer) {
-    if(window.confirm("Deseja mesmo apagar tudo?"))
-    {
+    if(window.confirm("Deseja mesmo apagar tudo?")) {
         grafo.reset();
         inpOrigem.value = '';
         inpDestino.value = '';
@@ -216,23 +224,31 @@ function limparTudo(gh: GraphRenderer) {
 }
 
 function selectAll() {
-    grafo.selectAllVertices();
+    grafo.selectAllElements();
     gh.rerender();
 
     switchControlButtonsVisibility();
 }
 
 function unselectAll() {
-    grafo.unselectAllVertices();
+    grafo.unselectAllElements();
     gh.rerender();
 
     switchControlButtonsVisibility();
 }
 
-function deletarSelecionados(gh: GraphRenderer) {
-    const vertices = grafo.selectedVertices;
-    if(!vertices)
-        return;
-    grafo.removeVertices(vertices);
-    gh.rerender();
+function deletarSelecionados(gh: GraphRenderer)
+{
+    // const vertices = grafo.selectedVertices;
+    // if(vertices)
+    //     grafo.removeVertices(vertices);
+
+    // const edges = grafo.selectedEdges;
+    // console.log(edges);
+    // if(edges)
+    //     grafo.removeEdges(edges);
+
+    // grafo.unselectAllElements();
+
+    // gh.rerender();
 }

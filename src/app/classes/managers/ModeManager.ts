@@ -1,5 +1,5 @@
-import { Grafo } from "./Grafo";
-import { GraphRenderer } from "./GraphRenderer";
+import { Grafo } from "../graph/Grafo";
+import { GraphRenderer } from "../graphics/GraphRenderer";
 
 export type Mode = 'move' | 'add-vertex' | 'select-vertex' | 'connect-vertices';
 

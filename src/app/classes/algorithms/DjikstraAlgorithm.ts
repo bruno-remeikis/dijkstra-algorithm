@@ -1,6 +1,6 @@
-import { Aresta } from "./Aresta";
-import { Grafo } from "./Grafo";
-import { Vertice } from "./Vertice";
+import { Aresta } from "../graph/Aresta";
+import { Grafo } from "../graph/Grafo";
+import { Vertice } from "../graph/Vertice";
 
 interface Djikstra {
     raiz: number;
@@ -126,7 +126,7 @@ export class DijkstraAlgorithm
                     aresta = a;
     
             if(aresta) {
-                aresta.marcada = true;
+                aresta.marcado = true;
                 this.grafo.vertices[atual].marcado = true;
                 possuiCaminho = true;
             }

@@ -1,7 +1,8 @@
-import { StyleMap } from "../types/StyleProps";
+import { StyleMap } from "../../types/StyleProps";
 import { Aresta } from "./Aresta";
+import { GraphElement } from "./GraphElement";
 
-export class Vertice
+export class Vertice extends GraphElement
 {
     public static readonly STYLE: StyleMap = {
         default:  { color: '#212d38', borderColor: 'black' },
@@ -13,15 +14,24 @@ export class Vertice
     public static readonly raio = 20;
 
     public arestas: Aresta[] = [];
-    public marcado: boolean = false;
-    public selected: boolean = false;
+    public targetEdges: Aresta[] = [];
 
     constructor(
-        public index: number,
-        public nome: string,
-        public x: number = 0,
-        public y: number = 0,
-    ) {}
+        public _index: number,
+        private _nome: string,
+        private _x: number = 0,
+        private _y: number = 0,
+    ) {
+        super();
+    }
+
+    get index(): number { return this._index; }
+
+    get nome(): string { return this._nome; }
+
+    get x(): number { return this._x; }
+
+    get y(): number { return this._y; }
 
     public static consumeIndex = () =>
         Vertice.nextIndex++;
@@ -42,32 +52,45 @@ export class Vertice
         return new Vertice(index, String.fromCharCode(index + 65));
     }
 
-    public conectar(vertice: Vertice, peso?: number, direcional?: boolean)
+    public conectar(vertice: Vertice, peso?: number, direcional?: boolean): Vertice
     {
-        this.arestas.push(new Aresta(this, vertice, peso, direcional));
+        const e = new Aresta(this, vertice, peso, direcional);
+        this.arestas.push(e);
+        vertice.targetEdges.push(e);
         return this;
     }
 
-    public setPosition(x: number, y: number)
-    {
-        this.x = x;
-        this.y = y;
+    public setPosition(x: number, y: number) {
+        this._x = x;
+        this._y = y;
     }
 
-    public hasPoint(x: number, y: number): boolean
+    public move(x: number, y: number) {
+        this.setPosition(x, y);
+        this.arestas.forEach(e => e.recalculate());
+        this.targetEdges.forEach(e => e.recalculate());
+    }
+
+    public havePoint(x: number, y: number): boolean
     {
         const distancia = Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
         return distancia <= Vertice.raio;
     }
 
+    public haveSelectedEdge(): boolean {
+        for(const e of this.arestas)
+            if(e.selected)
+                return true;
+        return false;
+    }
+
     public static clearMarcacoes(vertices: Vertice[])
     {
-        for(const v of vertices)
-        {
+        for(const v of vertices)  {
             v.marcado = false;
             
             for(const a of v.arestas)
-                a.marcada = false;
+                a.marcado = false;
         }
     }
 

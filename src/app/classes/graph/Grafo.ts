@@ -1,3 +1,4 @@
+import { Aresta } from "./Aresta";
 import { Vertice } from "./Vertice";
 
 export class Grafo
@@ -10,8 +11,12 @@ export class Grafo
         return this._vertices;
     }
 
-    get selectedVertices() {
+    get selectedVertices(): Vertice[] {
         return this._selectedVertices;
+    }
+
+    get selectedEdges(): Aresta[] {
+        return this._vertices.flatMap(v => v.arestas).filter(e => e.selected);
     }
 
     get selectedVertex(): Vertice | null {
@@ -35,19 +40,12 @@ export class Grafo
     
         const vertices: Vertice[] = [];
     
-        for(let i = 0; i < adjMatrix.length; i++)
-        {
+        for(let i = 0; i < adjMatrix.length; i++) {
             const v = Vertice.criarVertice();
             if(v)
                 vertices.push(v);
         }
-        
-        // Conectar vértices (criar arestas)
-        for(let i = 0; i < adjMatrix.length; i++)
-            for(let j = 0; j < adjMatrix.length; j++)
-                if(adjMatrix[i][j] > 0)
-                    vertices[i].conectar(vertices[j], adjMatrix[i][j], true);
-    
+
         vertices[0].setPosition(150, 50);
         vertices[1].setPosition(300, 50);
         
@@ -57,6 +55,12 @@ export class Grafo
         
         vertices[5].setPosition(150, 250);
         vertices[6].setPosition(300, 250);
+        
+        // Conectar vértices (criar arestas)
+        for(let i = 0; i < adjMatrix.length; i++)
+            for(let j = 0; j < adjMatrix.length; j++)
+                if(adjMatrix[i][j] > 0)
+                    vertices[i].conectar(vertices[j], adjMatrix[i][j], true);
     
         return vertices;
     }
@@ -127,24 +131,68 @@ export class Grafo
         vertices.forEach(v => this.unselectVertex(v));
     }
 
-    selectAllVertices(): void {
-        this._vertices.forEach(v => v.selected = true);
-        this._selectedVertices = this._vertices;
+    // "All"
+
+    setAllVerticesSelected(selected: boolean): void {
+        this._vertices.forEach(v => v.selected = selected);
+        this._selectedVertices = selected ? this._vertices : [];
     }
 
-    unselectAllVertices(): void {
-        this._vertices.forEach(v => v.selected = false);
-        this._selectedVertices = [];
+    setAllEdgesSelected(selected: boolean): void {
+        this._vertices.forEach(v =>
+            v.arestas.forEach(a => a.selected = selected)
+        );
     }
+
+    setAllElementsSelected(selected: boolean): void {
+        this._vertices.forEach(v => {
+            v.selected = selected;
+            v.arestas.forEach(a => a.selected = selected);
+        });
+        this._selectedVertices = selected ? this._vertices : [];
+    }
+
+    selectAllVertices = (): void => this.setAllVerticesSelected(true);
+
+    selectAllEdges = (): void => this.setAllEdgesSelected(true);
+
+    selectAllElements = (): void => this.setAllElementsSelected(true);
+
+    unselectAllVertices = (): void => this.setAllVerticesSelected(false);
+
+    unselectAllEdges = (): void => this.setAllEdgesSelected(false);
+
+    unselectAllElements = (): void => this.setAllElementsSelected(false);
+
+    // End "All"
 
     haveSelectedVertices(): boolean {
         return this._selectedVertices.length > 0;
     }
 
+    haveSelectedEdges(): boolean {
+        for(const v of this._vertices)
+            if(v.haveSelectedEdge())
+                return true;
+        return false;
+    }
+
+    haveSelectedElements(): boolean {
+        return this.haveSelectedVertices() || this.haveSelectedEdges();
+    }
+
     getClickedVertex(x: number, y: number): Vertice | null {
         for(const v of this._vertices.reverse())
-            if(v.hasPoint(x, y))
+            if(v.havePoint(x, y))
                 return v;
+        return null;
+    }
+
+    getClickedEdge(x: number, y: number): Aresta | null {
+        for(const v of this._vertices.reverse())
+            for(const a of v.arestas)
+                if(a.havePoint(x, y))
+                    return a;
         return null;
     }
 
@@ -153,6 +201,8 @@ export class Grafo
      * @param vertices Vértices a serem removidos do grafo
      */
     removeVertices(vertices: Vertice[]): void {
+        console.log('A')
+
         this._vertices = this._vertices.filter(v => {
             if(vertices.includes(v)) {
                 this.disconnectVertex(v);
@@ -160,6 +210,16 @@ export class Grafo
             }
             return true;
         });
+    }
+
+    removeEdges(edges: Aresta[]): void {
+        this._vertices.forEach(v => {
+            v.arestas.forEach(e => {
+                if(edges.includes(e))
+                    v.removeConnectionsWith(e.destino);
+            })
+            
+        })
     }
 
     /**
