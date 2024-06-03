@@ -182,14 +182,14 @@ export class Grafo
     }
 
     getClickedVertex(x: number, y: number): Vertice | null {
-        for(const v of this._vertices.reverse())
+        for(const v of this._vertices.slice().reverse())
             if(v.havePoint(x, y))
                 return v;
         return null;
     }
 
     getClickedEdge(x: number, y: number): Aresta | null {
-        for(const v of this._vertices.reverse())
+        for(const v of this._vertices.slice().reverse())
             for(const a of v.arestas)
                 if(a.havePoint(x, y))
                     return a;
