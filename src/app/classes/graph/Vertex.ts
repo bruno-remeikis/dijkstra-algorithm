@@ -1,8 +1,8 @@
 import { StyleMap } from "../../types/StyleProps";
-import { Aresta } from "./Aresta";
+import { Edge } from "./Edge";
 import { GraphElement } from "./GraphElement";
 
-export class Vertice extends GraphElement
+export class Vertex extends GraphElement
 {
     public static readonly STYLE: StyleMap = {
         default:  { color: '#212d38', borderColor: 'black' },
@@ -11,14 +11,14 @@ export class Vertice extends GraphElement
     };
 
     private static nextIndex = 0;
-    public static readonly raio = 20;
+    public static readonly radius = 20;
 
-    public arestas: Aresta[] = [];
-    public targetEdges: Aresta[] = [];
+    public edges: Edge[] = [];
+    public targetEdges: Edge[] = [];
 
     constructor(
         public _index: number,
-        private _nome: string,
+        private _name: string,
         private _x: number = 0,
         private _y: number = 0,
     ) {
@@ -27,35 +27,35 @@ export class Vertice extends GraphElement
 
     get index(): number { return this._index; }
 
-    get nome(): string { return this._nome; }
+    get name(): string { return this._name; }
 
     get x(): number { return this._x; }
 
     get y(): number { return this._y; }
 
     public static consumeIndex = () =>
-        Vertice.nextIndex++;
+        Vertex.nextIndex++;
 
     public static getLastIndex = () =>
-        Vertice.nextIndex - 1;
+        Vertex.nextIndex - 1;
 
     public static resetIndex = () =>
-        Vertice.nextIndex = 0;
+        Vertex.nextIndex = 0;
 
-    static criarVertice(): Vertice | null
+    static create(): Vertex | null
     {
-        if(Vertice.getLastIndex() >= 25)
+        if(Vertex.getLastIndex() >= 25)
             return null;
 
-        const index = Vertice.consumeIndex();
+        const index = Vertex.consumeIndex();
         
-        return new Vertice(index, String.fromCharCode(index + 65));
+        return new Vertex(index, String.fromCharCode(index + 65));
     }
 
-    public conectar(vertice: Vertice, peso?: number, direcional?: boolean): Vertice
+    public connect(vertice: Vertex, peso?: number, direcional?: boolean): Vertex
     {
-        const e = new Aresta(this, vertice, peso, direcional);
-        this.arestas.push(e);
+        const e = new Edge(this, vertice, peso, direcional);
+        this.edges.push(e);
         vertice.targetEdges.push(e);
         return this;
     }
@@ -67,38 +67,38 @@ export class Vertice extends GraphElement
 
     public move(x: number, y: number) {
         this.setPosition(x, y);
-        this.arestas.forEach(e => e.recalculate());
+        this.edges.forEach(e => e.recalculate());
         this.targetEdges.forEach(e => e.recalculate());
     }
 
-    public havePoint(x: number, y: number): boolean
+    public hasPoint(x: number, y: number): boolean
     {
         const distancia = Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
-        return distancia <= Vertice.raio;
+        return distancia <= Vertex.radius;
     }
 
-    public haveSelectedEdge(): boolean {
-        for(const e of this.arestas)
+    public hasSelectedEdge(): boolean {
+        for(const e of this.edges)
             if(e.selected)
                 return true;
         return false;
     }
 
-    public static clearMarcacoes(vertices: Vertice[])
+    public static markOff(vertices: Vertex[])
     {
         for(const v of vertices)  {
-            v.marcado = false;
+            v.marked = false;
             
-            for(const a of v.arestas)
-                a.marcado = false;
+            for(const a of v.edges)
+                a.marked = false;
         }
     }
 
     // deleteRelatedEdges() {
-    //     this.arestas = this.arestas.filter(e => e.origem !== this && e.destino !== this);
+    //     this.edges = this.edges.filter(e => e.origem !== this && e.destino !== this);
     // }
 
-    removeConnectionsWith(otherVertex: Vertice) {
-        this.arestas = this.arestas.filter(c => c.origem !== otherVertex && c.destino !== otherVertex);
+    removeConnectionsWith(otherVertex: Vertex) {
+        this.edges = this.edges.filter(c => c.origin !== otherVertex && c.target !== otherVertex);
     }
 }

@@ -1,6 +1,6 @@
-import { Aresta } from "../graph/Aresta";
-import { Grafo } from "../graph/Grafo";
-import { Vertice } from "../graph/Vertice";
+import { Edge } from "../graph/Edge";
+import { Graph } from "../graph/Graph";
+import { Vertex } from "../graph/Vertex";
 
 interface Djikstra {
     raiz: number;
@@ -15,29 +15,35 @@ export class DijkstraAlgorithm
     private static ALGUM_CAMINHO = 1;
     private static MELHOR_CAMINHO = 2;
 
-    private constructor(
-        private grafo: Grafo,
-        private djikstra: Djikstra
+    private djikstra: Djikstra | null = null;
+
+    private _currentRoot: number | null = null;
+    private _currentTarget: number | null = null;
+
+    constructor(
+        private graph: Graph,
     ) {}
 
     /**
      * Processa o algoritmo a partir da raiz especificada
-     * @param vertices (Grafo) grafo
-     * @param raiz (number) index do Vertice raiz do algoritmo
+     * @param vertices (Graph) graph
+     * @param raiz (number) index do Vertex raiz do algoritmo
      * @returns (DjikstraAltorithm) objeto capaz de encontrar a melhor rota até um vértice, partindo da raiz especificada
      */
-    public static process(grafo: Grafo, raiz: number): DijkstraAlgorithm
+    public process(raiz: number): DijkstraAlgorithm
     {
-        if(raiz < 0 || raiz >= grafo.vertices.length)
+        if(raiz < 0 || raiz >= this.graph.vertices.length)
             throw new Error("Houve um erro ao tentar processar o algoritmo de Dijkstra");
+
+        this._currentRoot = raiz;
 
         // INICIALIZAR VETORES
 
-        const dist: number[] = new Array(grafo.vertices.length);
-        const marca: number[] = new Array(grafo.vertices.length);
-        const ant: number[] = new Array(grafo.vertices.length);
+        const dist: number[] = new Array(this.graph.vertices.length);
+        const marca: number[] = new Array(this.graph.vertices.length);
+        const ant: number[] = new Array(this.graph.vertices.length);
 
-        for(let i = 0; i < grafo.vertices.length; i++)
+        for(let i = 0; i < this.graph.vertices.length; i++)
         {
             dist[i] = Number.MAX_SAFE_INTEGER; // infinito
             marca[i] = 0;
@@ -56,7 +62,7 @@ export class DijkstraAlgorithm
             // Seleciona o vértice principal atual
             // (Vértice com marca 1 (ALGUM_CAMINHO) e menor distância acumulada)
             let menor = Number.MAX_SAFE_INTEGER;
-            for(let i = 0; i < grafo.vertices.length; i++)
+            for(let i = 0; i < this.graph.vertices.length; i++)
                 if(marca[i] == DijkstraAlgorithm.ALGUM_CAMINHO && dist[i] < menor) {
                     menor = dist[i];
                     atual = i;
@@ -67,26 +73,26 @@ export class DijkstraAlgorithm
             
             // Atualiza a marca do vértice principal atual
             marca[atual] = DijkstraAlgorithm.MELHOR_CAMINHO;
-            const v: Vertice = grafo.vertices[atual];
+            const v: Vertex = this.graph.vertices[atual];
             
             // Visita vértices adjacentes
-            for(let a of v.arestas)
+            for(let a of v.edges)
             {
                 let index: number;
                 
-                // Para arestas direcionais
-                if(a.direcional) 
-                    index = a.destino.index; // Index do vértice adjacente
-                // Para arestas não-direcionais
+                // Para edges direcionais
+                if(a.directional) 
+                    index = a.target.index; // Index do vértice adjacente
+                // Para edges não-direcionais
                 else
-                    index = (a.destino == v ? a.origem : a.destino).index;
+                    index = (a.target == v ? a.origin : a.target).index;
                 
                 // Caso o vértice já tenha sido o principal em algum momento, ignora-o
                 if(marca[index] == DijkstraAlgorithm.MELHOR_CAMINHO)
                     continue;
                 
                 // Calcula distância acumulada
-                let distancia: number = dist[atual] + a.valor;
+                let distancia: number = dist[atual] + a.value;
                 
                 if(marca[index] == DijkstraAlgorithm.NENHUM_CAMINHO || distancia < dist[index])
                 {
@@ -97,37 +103,45 @@ export class DijkstraAlgorithm
             }
         }
 
-        const djikstra: Djikstra = { raiz, dist, marca, ant };
-        return new DijkstraAlgorithm(grafo, djikstra);
+        this.djikstra = { raiz, dist, marca, ant };
+
+        return this;
     }
 
     /**
      * Encontrar a melhor rota até um vértice, partindo da raiz especificada no processamento.
-     * Ao encontrar a melhor rota, atualiza o campo Aresta.marcada para true
-     * @param destino (number) index da aresta de destino
-     * @returns (boolean) false caso destino especificado seja inválido
+     * Ao encontrar a melhor rota, atualiza o campo Edge.marcada para true
+     * @param target (number) index da edge de target
+     * @returns (boolean) false caso target especificado seja inválido
      */
-    public calculatePath(destino: number): boolean
+    public calculatePath(target: number): boolean
     {
-        if(destino < 0 || destino >= this.grafo.vertices.length)
+        if(!this.djikstra)
+            throw new Error('É necessário processar o algoritmo antes de calcular um caminho.');
+
+        if(target < 0 || target >= this.graph.vertices.length)
             return false;
+
+        this.graph.unmarkAllElements();
+
+        this._currentTarget = target;
 
         const { raiz, ant } = this.djikstra;
 
-        let atual = destino;
+        let atual = target;
         let possuiCaminho = false;
         do {
             const anterior = ant[atual];
     
-            let aresta: Aresta | undefined;
-            for(const a of this.grafo.vertices[anterior].arestas)
-                if(a.destino == this.grafo.vertices[atual]
-                && (!aresta || a.valor < aresta.valor))
-                    aresta = a;
+            let edge: Edge | undefined;
+            for(const a of this.graph.vertices[anterior].edges)
+                if(a.target == this.graph.vertices[atual]
+                && (!edge || a.value < edge.value))
+                    edge = a;
     
-            if(aresta) {
-                aresta.marcado = true;
-                this.grafo.vertices[atual].marcado = true;
+            if(edge) {
+                edge.marked = true;
+                this.graph.vertices[atual].marked = true;
                 possuiCaminho = true;
             }
     
@@ -136,9 +150,21 @@ export class DijkstraAlgorithm
         while(atual != raiz);
 
         if(possuiCaminho)
-            this.grafo.vertices[atual].marcado = true;
+            this.graph.vertices[atual].marked = true;
                 
         return true;
+    }
+
+    public reprocess(): DijkstraAlgorithm {
+        if(this._currentRoot !== null)
+            return this.process(this._currentRoot);
+        throw new Error('É necessário processar o algoritmo antes de reprocessá-lo');
+    }
+
+    public recalculatePath(): boolean {
+        if(this._currentTarget !== null)
+            return this.calculatePath(this._currentTarget);
+        return false;
     }
 
     /**
@@ -146,17 +172,20 @@ export class DijkstraAlgorithm
      */
     public toString(): string
     {
+        if(!this.djikstra)
+            return 'Altoritmo ainda não processado';
+
         let tabela = '';
 
         const { dist, marca, ant } = this.djikstra;
 
-        for(let i = 0; i < this.grafo.vertices.length; i++)
+        for(let i = 0; i < this.graph.vertices.length; i++)
             tabela +=
                 "| " +
-                this.grafo.vertices[i].nome + " | " +
+                this.graph.vertices[i].name + " | " +
                 (dist[i] < Number.MAX_SAFE_INTEGER ? dist[i] : "\u221E") + " | " +
                 marca[i] + " | " +
-                (ant[i] >= 0 ? this.grafo.vertices[ant[i]].nome : "-") + " |";
+                (ant[i] >= 0 ? this.graph.vertices[ant[i]].name : "-") + " |";
 
         return tabela;
     }

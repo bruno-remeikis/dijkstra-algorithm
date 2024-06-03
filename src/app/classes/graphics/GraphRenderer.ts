@@ -1,9 +1,9 @@
 import { Point } from "../../types/Point";
 import { calcTrianglePoints } from "../../utils/calc";
-import { Aresta } from "../graph/Aresta";
-import { Grafo } from "../graph/Grafo";
+import { Edge } from "../graph/Edge";
+import { Graph } from "../graph/Graph";
 import { GraphElement } from "../graph/GraphElement";
-import { Vertice } from "../graph/Vertice";
+import { Vertex } from "../graph/Vertex";
 
 export class GraphRenderer
 {
@@ -12,7 +12,7 @@ export class GraphRenderer
 
     constructor(
         private ctx: CanvasRenderingContext2D,
-        public grafo: Grafo
+        public graph: Graph
     ) {}
 
     rerender(): void {
@@ -31,12 +31,12 @@ export class GraphRenderer
         this.ctx.font = `${GraphRenderer.FONT_SIZE}px consolas`; // sans-serif
         this.ctx.lineWidth = 1;
 
-        for(const v of this.grafo.vertices)
+        for(const v of this.graph.vertices)
         {
-            for(const a of v.arestas)
+            for(const a of v.edges)
             {
                 // CABEÇA DA SETA DA ARESTA
-                if(a.direcional)
+                if(a.directional)
                     this.drawArrowHead(a);
 
                 // ARESTA
@@ -50,18 +50,18 @@ export class GraphRenderer
         }
     }
 
-    private drawCircle(x: number, y: number, raio: number): void {
-        this.ctx.arc(x, y, raio, 0, 2 * Math.PI);
+    private drawCircle(x: number, y: number, radius: number): void {
+        this.ctx.arc(x, y, radius, 0, 2 * Math.PI);
     }
 
-    private drawVertex(v: Vertice): void
+    private drawVertex(v: Vertex): void
     {
         // Vértice
         this.ctx.beginPath();
-        this.ctx.fillStyle = Vertice.STYLE[v.status].color;
-        this.ctx.strokeStyle = Vertice.STYLE[v.status].borderColor;
+        this.ctx.fillStyle = Vertex.STYLE[v.status].color;
+        this.ctx.strokeStyle = Vertex.STYLE[v.status].borderColor;
         this.ctx.lineWidth = 1;
-        this.drawCircle(v.x, v.y, Vertice.raio);
+        this.drawCircle(v.x, v.y, Vertex.radius);
         this.ctx.fill();
         this.ctx.stroke();
 
@@ -70,44 +70,44 @@ export class GraphRenderer
         this.ctx.fillStyle = 'white';
         //ctx.font = 
         this.ctx.fillText(
-            v.nome,
+            v.name,
             v.x - GraphRenderer.TEXT_ADJUSTMENT,
             v.y + GraphRenderer.TEXT_ADJUSTMENT
         );
         this.ctx.closePath();
     }
 
-    private drawEdge(a: Aresta): void {
+    private drawEdge(a: Edge): void {
         this.ctx.beginPath();
-        this.ctx.strokeStyle = Aresta.STYLE[a.status].color;
-        this.ctx.lineWidth = a.marcado ? 3 : 1;
-        this.ctx.moveTo(a.origem.x, a.origem.y);
-        this.ctx.lineTo(a.pontoFimLinha.x, a.pontoFimLinha.y);
+        this.ctx.strokeStyle = Edge.STYLE[a.status].color;
+        this.ctx.lineWidth = a.marked ? 3 : 1;
+        this.ctx.moveTo(a.origin.x, a.origin.y);
+        this.ctx.lineTo(a.endLinePoint.x, a.endLinePoint.y);
         this.ctx.stroke();
     }
 
-    private drawEdgeValue(a: Aresta): void {
+    private drawEdgeValue(a: Edge): void {
         this.ctx.beginPath();
-        this.ctx.fillStyle = a.selected ? Aresta.STYLE.selected.color : 'white';
-        this.drawCircle(a.pontosValor.x, a.pontosValor.y, GraphRenderer.FONT_SIZE / 2);
+        this.ctx.fillStyle = a.selected ? Edge.STYLE.selected.color : 'white';
+        this.drawCircle(a.valuePoint.x, a.valuePoint.y, GraphRenderer.FONT_SIZE / 2);
         this.ctx.fill();
 
         this.ctx.beginPath();
         this.ctx.fillStyle = a.selected ? 'white' : 'black';
         this.ctx.fillText(
-            a.valor + '',
-            a.pontosValor.x - GraphRenderer.TEXT_ADJUSTMENT,
-            a.pontosValor.y + GraphRenderer.TEXT_ADJUSTMENT
+            a.value + '',
+            a.valuePoint.x - GraphRenderer.TEXT_ADJUSTMENT,
+            a.valuePoint.y + GraphRenderer.TEXT_ADJUSTMENT
         );
         this.ctx.closePath();
     }
 
-    private drawArrowHead(a: Aresta): void {
+    private drawArrowHead(a: Edge): void {
         this.ctx.beginPath();
-        this.ctx.fillStyle = Aresta.STYLE[a.status].color;
-        this.ctx.moveTo(a.pontosTriangulo[0].x, a.pontosTriangulo[0].y);
-        this.ctx.lineTo(a.pontosTriangulo[1].x, a.pontosTriangulo[1].y);
-        this.ctx.lineTo(a.pontosTriangulo[2].x, a.pontosTriangulo[2].y);
+        this.ctx.fillStyle = Edge.STYLE[a.status].color;
+        this.ctx.moveTo(a.trianglePoints[0].x, a.trianglePoints[0].y);
+        this.ctx.lineTo(a.trianglePoints[1].x, a.trianglePoints[1].y);
+        this.ctx.lineTo(a.trianglePoints[2].x, a.trianglePoints[2].y);
         this.ctx.fill();
     }
 }

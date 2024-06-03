@@ -2,9 +2,9 @@ import { Point } from "../../types/Point";
 import { StyleMap } from "../../types/StyleProps";
 import { calcCircleIntersection, calcTrianglePoints } from "../../utils/calc";
 import { GraphElement } from "./GraphElement";
-import { Vertice } from "./Vertice";
+import { Vertex } from "./Vertex";
 
-export class Aresta extends GraphElement
+export class Edge extends GraphElement
 {
     public static readonly STYLE: StyleMap = {
         default:  { color: /*'#212d38'*/ '#444444', borderColor: '' },
@@ -12,21 +12,21 @@ export class Aresta extends GraphElement
         marked:   { color: '#1A9E1A', borderColor: '' }
     };
 
-    static readonly defaultDirecional = false;
-    public static readonly raioValor = 7;
+    static readonly defaultDirectional = false;
+    public static readonly valueRadius = 7;
     public static readonly TRIANGLE_BASE = 12;
     public static readonly TRIANGLE_HEIGHT = 12;
     
     private _vertexIntersectionPoint: Point = { x: 0, y: 0 };
-    private _pontoFimLinha: Point = { x: 0, y: 0 };
-    private _pontosTriangulo: Point[] = [];
-    private _pontosValor: Point = { x: 0, y: 0 };
+    private _endLinePoint: Point = { x: 0, y: 0 };
+    private _trianglePoints: Point[] = [];
+    private _valuePoint: Point = { x: 0, y: 0 };
 
     constructor(
-        public origem: Vertice,
-        public destino: Vertice,
-        public valor: number = 1,
-        public direcional: boolean = Aresta.defaultDirecional,
+        public origin: Vertex,
+        public target: Vertex,
+        public value: number = 1,
+        public directional: boolean = Edge.defaultDirectional,
     ) {
         super();
         this.recalculate();
@@ -34,47 +34,47 @@ export class Aresta extends GraphElement
 
     get vertexIntersectionPoint(): Point { return this._vertexIntersectionPoint; }
 
-    get pontoFimLinha(): Point { return this._pontoFimLinha; }
+    get endLinePoint(): Point { return this._endLinePoint; }
 
-    get pontosTriangulo(): Point[] { return this._pontosTriangulo; }
+    get trianglePoints(): Point[] { return this._trianglePoints; }
 
-    get pontosValor(): Point { return this._pontosValor; }
+    get valuePoint(): Point { return this._valuePoint; }
 
     public havePoint(x: number, y: number): boolean
     {
-        const distancia = Math.sqrt((this.pontosValor.x - x) ** 2 + (this.pontosValor.y - y) ** 2);
-        return distancia <= Vertice.raio;
+        const distancia = Math.sqrt((this.valuePoint.x - x) ** 2 + (this.valuePoint.y - y) ** 2);
+        return distancia <= Vertex.radius;
     }
 
     public recalculate(): void {
         // Calcula o ponto de intersecção entre o círculo (Vértice) e a reta origem-destino
         this._vertexIntersectionPoint = calcCircleIntersection(
-            { x: this.destino.x, y: this.destino.y },
-            Vertice.raio,
-            { x: this.origem.x, y: this.origem.y }
+            { x: this.target.x, y: this.target.y },
+            Vertex.radius,
+            { x: this.origin.x, y: this.origin.y }
         );
 
-        this._pontosValor = {
-            x: (this.origem.x + this.vertexIntersectionPoint.x) / 2,
-            y: (this.origem.y + this.vertexIntersectionPoint.y) / 2
+        this._valuePoint = {
+            x: (this.origin.x + this.vertexIntersectionPoint.x) / 2,
+            y: (this.origin.y + this.vertexIntersectionPoint.y) / 2
         };
 
-        if(this.direcional) {
+        if(this.directional) {
             // Calcula os pontos do triângulo que forma a cabeça da seta
             const { pontosTriangulo, pontoCentroBase } = calcTrianglePoints(
-                { x: this.origem.x, y: this.origem.y },
+                { x: this.origin.x, y: this.origin.y },
                 { x: this.vertexIntersectionPoint.x, y: this.vertexIntersectionPoint.y },
-                Aresta.TRIANGLE_HEIGHT, Aresta.TRIANGLE_BASE
+                Edge.TRIANGLE_HEIGHT, Edge.TRIANGLE_BASE
             );
 
-            this._pontosTriangulo = pontosTriangulo;
+            this._trianglePoints = pontosTriangulo;
 
             // Sobrescreve a variável para que a linha não passe por baixo da cabeça da seta
-            this._pontoFimLinha = { x: pontoCentroBase.x, y: pontoCentroBase.y };
+            this._endLinePoint = { x: pontoCentroBase.x, y: pontoCentroBase.y };
         }
         else {
-            // Define o fim da linha da aresta, para caso ela tenha uma cabeça de seta
-            this._pontoFimLinha = {
+            // Define o fim da linha da edge, para caso ela tenha uma cabeça de seta
+            this._endLinePoint = {
                 x: this.vertexIntersectionPoint.x,
                 y: this.vertexIntersectionPoint.y
             };
@@ -83,6 +83,6 @@ export class Aresta extends GraphElement
 
     public toString(): string
     {
-        return `${this.origem.nome} ${this.direcional ? '-' : '<'}--> ${this.destino.nome} (value: ${this.valor})`;
+        return `${this.origin.name} ${this.directional ? '-' : '<'}--> ${this.target.name} (value: ${this.value})`;
     }
 }

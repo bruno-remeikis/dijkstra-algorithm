@@ -1,7 +1,7 @@
-import { Vertice } from "./app/classes/graph/Vertice";
+import { Vertex } from "./app/classes/graph/Vertex";
 import { DijkstraAlgorithm } from "./app/classes/algorithms/DjikstraAlgorithm";
 import { GraphRenderer } from "./app/classes/graphics/GraphRenderer";
-import { Grafo } from "./app/classes/graph/Grafo";
+import { Graph } from "./app/classes/graph/Graph";
 import { ModeManager } from "./app/classes/managers/ModeManager";
 
 // Elementos HTML
@@ -17,53 +17,53 @@ const btnSelectAll = document.getElementById('btn-select-all') as HTMLButtonElem
 const btnUnselectAll = document.getElementById('btn-unselect-all') as HTMLButtonElement;
 const btnDelete = document.getElementById('btn-delete') as HTMLButtonElement;
 
-// Grafo
-const grafo: Grafo = new Grafo();
+// Graph
+const graph: Graph = new Graph();
+
+// Managers
+const modeManager: ModeManager = new ModeManager(mainBtns);
+
+// Algorithm
+let raiz: number = 0;
+let destino: number = 5;
+let djikstraAlgorithm: DijkstraAlgorithm = new DijkstraAlgorithm(graph);
 
 // Renderizador
 const ctx = canvas.getContext("2d")!;
-const gh: GraphRenderer = new GraphRenderer(ctx, grafo);
+const gh: GraphRenderer = new GraphRenderer(ctx, graph);
 
 main();
 
 function main()
 {
-    // Parâmetros
-
-    let raiz: number = 0;
-    let destino: number = 5;
-
-    // Djikstra
-
-    let djikstraAlgorithm: DijkstraAlgorithm = DijkstraAlgorithm.process(grafo, raiz);
-    djikstraAlgorithm.calculatePath(destino);
-
     // Eventos
 
-    if(!mainBtns) {
-        alert('Ops. Houve um problema ao tentarmos configurar os modos de manipulação do grafo.')
-        return;
-    }
-
-    const modeManager: ModeManager = new ModeManager(mainBtns);
-    modeManager.configModeBtns(grafo, gh, () => {
+    modeManager.configModeBtns(graph, gh, () => {
         controlBtns.classList.remove('visible');
     }, {
         'select-vertex': () => controlBtns.classList.add('visible')
     });
     modeManager.selectMode('move');
 
+    configCanvasClickEvent();
+
+    // Iniciar
+
+    djikstraAlgorithm.process(raiz)
+        .calculatePath(destino);
+
+    gh.render();
+}
+
+function configCanvasClickEvent()
+{
     btnClean.onclick = () => limparTudo(gh);
     btnSelectAll.onclick = selectAll;
     btnUnselectAll.onclick = unselectAll;
     btnDelete.onclick = () => {
         if(window.confirm("Deseja mesmo apagar todos estes elementos?"))
-            deletarSelecionados(gh);
+            deleteSelected(gh);
     };
-
-    // Iniciar
-
-    gh.render();
 
     canvas.onclick = (event) =>
     {
@@ -75,32 +75,32 @@ function main()
         switch(modeManager.mode)
         {
             case 'move': {
-                let v = grafo.selectedVertex;
+                let v = graph.selectedVertex;
                 if(v) {
-                    grafo.unselectVertex(v);
+                    graph.unselectVertex(v);
                     gh.rerender();
                 }
                 else {
-                    v = grafo.getClickedVertex(x, y);
+                    v = graph.getClickedVertex(x, y);
                     if(v) {
-                        grafo.selectVertex(v);
+                        graph.selectVertex(v);
                         gh.rerender();
                     }
                 }
                 break;
             }
             case 'select-vertex': {
-                const v = grafo.getClickedVertex(x, y);
+                const v = graph.getClickedVertex(x, y);
                 if(v) {
                     if(v.selected)
-                        grafo.unselectVertex(v);
+                        graph.unselectVertex(v);
                     else
-                        grafo.selectVertex(v);
+                        graph.selectVertex(v);
 
                     switchControlButtonsVisibility();
                 }
                 else {
-                    const a = grafo.getClickedEdge(x, y);
+                    const a = graph.getClickedEdge(x, y);
                     if(a) {
                         a.selected = !a.selected;
                         switchControlButtonsVisibility();
@@ -110,13 +110,19 @@ function main()
                 break;
             }
             case 'add-vertex': {
-                const v = grafo.addVertex(x, y);
+                const v = graph.addVertex(x, y);
                 if(v)
                     gh.rerender();
                 break;
             }
             case 'connect-vertices': {
-                grafo.connectVertices(x, y);
+                graph.connectVertices(x, y);
+                
+                try {
+                    djikstraAlgorithm.reprocess()
+                        .recalculatePath();
+                } catch(err) {}
+
                 gh.rerender();
                 break;
             }
@@ -131,7 +137,7 @@ function main()
         switch(modeManager.mode)
         {
             case 'move':
-                const v = grafo.selectedVertex;
+                const v = graph.selectedVertex;
                 if(v) {
                     v.move(x, y);
                     gh.rerender();
@@ -145,7 +151,7 @@ function main()
         }
     }
 
-    //! Analizar trexos semelhantes a `grafo.vertices`
+    //! Analizar trexos semelhantes a `graph.vertices`
     inpOrigem.onkeydown = (event) =>
     {
         event.preventDefault();
@@ -154,28 +160,22 @@ function main()
 
         if(key.length === 1)
         {
-            Vertice.clearMarcacoes(grafo.vertices);
+            Vertex.markOff(graph.vertices);
             gh.clear();
 
             inpOrigem.value = key;
             raiz = key.charCodeAt(0) - 65;
 
             try {
-                if(raiz >= 0 && raiz < grafo.vertices.length) {
-                    const alg = DijkstraAlgorithm.process(grafo, raiz);
-                    if(alg) {
-                        djikstraAlgorithm = alg;
-                        alg.calculatePath(destino);
-                    }
-                }
-            }
-            catch(err) {}
+                djikstraAlgorithm.process(raiz)
+                    .recalculatePath();
+            } catch(err) {}
 
             gh.render();
         }
     };
 
-    //! Analizar trexos semelhantes a `grafo.vertices`
+    //! Analizar trexos semelhantes a `graph.vertices`
     inpDestino.onkeydown = (event) =>
     {
         event.preventDefault();
@@ -184,14 +184,14 @@ function main()
 
         if(key.length === 1)
         {
-            Vertice.clearMarcacoes(grafo.vertices);
+            Vertex.markOff(graph.vertices);
             gh.clear();
 
             inpDestino.value = key;
             destino = key.charCodeAt(0) - 65;
 
             try {
-                if(destino >= 0 && destino < grafo.vertices.length)
+                if(destino >= 0 && destino < graph.vertices.length)
                     if(djikstraAlgorithm) {
                         djikstraAlgorithm.calculatePath(destino);
                     }
@@ -203,12 +203,8 @@ function main()
     };
 }
 
-function configCanvasClickEvent() {
-
-}
-
 function switchControlButtonsVisibility() {
-    if(grafo.haveSelectedElements())
+    if(graph.hasSelectedElements())
         controlBtns?.classList.add('enabled');
     else
         controlBtns?.classList.remove('enabled');
@@ -216,7 +212,7 @@ function switchControlButtonsVisibility() {
 
 function limparTudo(gh: GraphRenderer) {
     if(window.confirm("Deseja mesmo apagar tudo?")) {
-        grafo.reset();
+        graph.reset();
         inpOrigem.value = '';
         inpDestino.value = '';
         gh.clear();
@@ -224,31 +220,34 @@ function limparTudo(gh: GraphRenderer) {
 }
 
 function selectAll() {
-    grafo.selectAllElements();
+    graph.selectAllElements();
     gh.rerender();
 
     switchControlButtonsVisibility();
 }
 
 function unselectAll() {
-    grafo.unselectAllElements();
+    graph.unselectAllElements();
     gh.rerender();
 
     switchControlButtonsVisibility();
 }
 
-function deletarSelecionados(gh: GraphRenderer)
+function deleteSelected(gh: GraphRenderer)
 {
-    // const vertices = grafo.selectedVertices;
-    // if(vertices)
-    //     grafo.removeVertices(vertices);
+    const vertices = graph.selectedVertices;
+    if(vertices)
+        graph.removeVertices(vertices);
 
-    // const edges = grafo.selectedEdges;
-    // console.log(edges);
-    // if(edges)
-    //     grafo.removeEdges(edges);
+    const edges = graph.selectedEdges;
+    console.log(edges);
+    if(edges)
+        graph.removeEdges(edges);
 
-    // grafo.unselectAllElements();
+    graph.unselectAllElements();
 
-    // gh.rerender();
+    djikstraAlgorithm.reprocess()
+        .recalculatePath(); 
+
+    gh.rerender();
 }
