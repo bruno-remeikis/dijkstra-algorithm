@@ -25,10 +25,9 @@ export class DijkstraAlgorithm
     ) {}
 
     /**
-     * Processa o algoritmo a partir da raiz especificada
-     * @param vertices (Graph) graph
-     * @param raiz (number) index do Vertex raiz do algoritmo
-     * @returns (DjikstraAltorithm) objeto capaz de encontrar a melhor rota até um vértice, partindo da raiz especificada
+     * Processa o algoritmo a partir da raiz especificada.
+     * @param raiz (number) index do Vertex raiz do algoritmo.
+     * @returns (DjikstraAltorithm) Retorna este próprio objeto.
      */
     public process(raiz: number): DijkstraAlgorithm
     {

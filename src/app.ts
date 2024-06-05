@@ -121,7 +121,9 @@ function configCanvasClickEvent()
                 try {
                     djikstraAlgorithm.reprocess()
                         .recalculatePath();
-                } catch(err) {}
+                } catch(err) {
+                    console.error(err);
+                }
 
                 gh.rerender();
                 break;
@@ -169,7 +171,9 @@ function configCanvasClickEvent()
             try {
                 djikstraAlgorithm.process(raiz)
                     .recalculatePath();
-            } catch(err) {}
+            } catch(err) {
+                console.error(err);
+            }
 
             gh.render();
         }
@@ -196,7 +200,9 @@ function configCanvasClickEvent()
                         djikstraAlgorithm.calculatePath(destino);
                     }
             }
-            catch(err) {}
+            catch(err) {
+                console.error(err);
+            }
 
             gh.render();
         }
