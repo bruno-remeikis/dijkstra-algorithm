@@ -1,9 +1,12 @@
+import { Point } from "../../types/Point";
 import { Edge } from "./Edge";
 import { Vertex } from "./Vertex";
 
 export class Graph
 {
-    private _vertices: Vertex[] = Graph.generateDefaultGraph();
+    static DEFAULT_GRAPH_SCALE = 1;
+
+    private _vertices: Vertex[] = [];
 
     private _selectedVertices: Vertex[] = [];
 
@@ -26,8 +29,17 @@ export class Graph
             : null;
     }
 
-    static generateDefaultGraph()
+    defineAsDefaultGraph(canvasWidth: number, canvasHeight: number): Graph
     {
+        const center: Point = { x: canvasWidth / 2, y: canvasHeight / 2 }
+
+        function setPosition(v: Vertex, dx: number, dy: number) {
+            v.setPosition(
+                center.x + dx * Graph.DEFAULT_GRAPH_SCALE,
+                center.y + dy * Graph.DEFAULT_GRAPH_SCALE
+            );
+        }
+
         const adjMatrix = [
             [  0,  2,  0,  1,  0,  0,  0, ],
             [  0,  0,  0,  3,  9,  0,  0, ],
@@ -46,15 +58,15 @@ export class Graph
                 vertices.push(v);
         }
 
-        vertices[0].setPosition(150, 50);
-        vertices[1].setPosition(300, 50);
-        
-        vertices[2].setPosition(75, 150);
-        vertices[3].setPosition(225, 150);
-        vertices[4].setPosition(385, 150);
-        
-        vertices[5].setPosition(150, 250);
-        vertices[6].setPosition(300, 250);
+        setPosition(vertices[0], -75, -100);
+        setPosition(vertices[1], 75, -100);
+    
+        setPosition(vertices[2], -150, 0);
+        setPosition(vertices[3], 0, 0);
+        setPosition(vertices[4], 150, 0);
+    
+        setPosition(vertices[5], -75, 100);
+        setPosition(vertices[6], 75, 100);
         
         // Conectar vértices (criar edges)
         for(let i = 0; i < adjMatrix.length; i++)
@@ -62,7 +74,8 @@ export class Graph
                 if(adjMatrix[i][j] > 0)
                     vertices[i].connect(vertices[j], adjMatrix[i][j], true);
     
-        return vertices;
+        this._vertices = vertices;
+        return this;
     }
 
     reset() {

@@ -17,8 +17,17 @@ const btnSelectAll = document.getElementById('btn-select-all') as HTMLButtonElem
 const btnUnselectAll = document.getElementById('btn-unselect-all') as HTMLButtonElement;
 const btnDelete = document.getElementById('btn-delete') as HTMLButtonElement;
 
+// CANVAS
+const defaultCanvasDimension = {
+    width: 600,
+    height: 400,
+};
+canvas.width = defaultCanvasDimension.width;
+canvas.height = defaultCanvasDimension.height;
+
 // Graph
-const graph: Graph = new Graph();
+const graph: Graph = new Graph()
+    .defineAsDefaultGraph(canvas.width, canvas.height);
 
 // Managers
 const modeManager: ModeManager = new ModeManager(mainBtns);
@@ -45,6 +54,8 @@ function main()
     });
     modeManager.selectMode('move');
 
+    configCanvasRedim();
+
     configCanvasClickEvent();
 
     // Iniciar
@@ -53,6 +64,19 @@ function main()
         .calculatePath(destino);
 
     gh.render();
+}
+
+function configCanvasRedim() {
+    window.addEventListener('resize', e => {
+        if(window.innerWidth <= 820) {
+            canvas.width = window.innerWidth - 240;
+            gh.rerender();
+        }
+        else if(canvas.width !== defaultCanvasDimension.width) {
+            canvas.width = defaultCanvasDimension.width;
+            gh.rerender();
+        }
+    });
 }
 
 function configCanvasClickEvent()
