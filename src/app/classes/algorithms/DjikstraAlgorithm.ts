@@ -11,9 +11,9 @@ interface Djikstra {
 
 export class DijkstraAlgorithm
 {
-    private static NENHUM_CAMINHO = 0;
-    private static ALGUM_CAMINHO = 1;
-    private static MELHOR_CAMINHO = 2;
+    private static readonly NENHUM_CAMINHO = 0;
+    private static readonly ALGUM_CAMINHO = 1;
+    private static readonly MELHOR_CAMINHO = 2;
 
     private djikstra: Djikstra | null = null;
 

@@ -203,7 +203,7 @@ export class Graph
 
     getClickedVertex(x: number, y: number): Vertex | null {
         for(const v of this._vertices.slice().reverse())
-            if(v.hasPoint(x, y))
+            if(v.hovers(x, y))
                 return v;
         return null;
     }
@@ -211,7 +211,7 @@ export class Graph
     getClickedEdge(x: number, y: number): Edge | null {
         for(const v of this._vertices.slice().reverse())
             for(const a of v.edges)
-                if(a.havePoint(x, y))
+                if(a.hovers(x, y))
                     return a;
         return null;
     }
@@ -221,8 +221,6 @@ export class Graph
      * @param vertices Vértices a serem removidos do graph
      */
     removeVertices(vertices: Vertex[]): void {
-        console.log('A')
-
         this._vertices = this._vertices.filter(v => {
             if(vertices.includes(v)) {
                 this.disconnectVertex(v);
@@ -237,9 +235,8 @@ export class Graph
             v.edges.forEach(e => {
                 if(edges.includes(e))
                     v.removeConnectionsWith(e.target);
-            })
-            
-        })
+            });
+        });
     }
 
     /**
@@ -249,6 +246,18 @@ export class Graph
     disconnectVertex(v: Vertex): void {
         this._vertices.forEach(v2 => {
             v2.removeConnectionsWith(v);
+        });
+    }
+
+    public log() {
+        console.log('-- GRAPH --');
+
+        console.log(`${this.vertices.length} vertices . ${this.vertices.map(v => v.edges).flat().length} edges`);
+
+        this.vertices.forEach(v => {
+            v.edges.forEach(e => {
+                console.log(e.toString());
+            });
         });
     }
 }

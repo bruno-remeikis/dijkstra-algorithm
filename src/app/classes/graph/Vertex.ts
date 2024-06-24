@@ -71,7 +71,7 @@ export class Vertex extends GraphElement
         this.targetEdges.forEach(e => e.recalculate());
     }
 
-    public hasPoint(x: number, y: number): boolean
+    public hovers(x: number, y: number): boolean
     {
         const distancia = Math.sqrt((this.x - x) ** 2 + (this.y - y) ** 2);
         return distancia <= Vertex.radius;
@@ -99,6 +99,6 @@ export class Vertex extends GraphElement
     // }
 
     removeConnectionsWith(otherVertex: Vertex) {
-        this.edges = this.edges.filter(c => c.origin !== otherVertex && c.target !== otherVertex);
+        this.edges = this.edges.filter(e => e.origin !== otherVertex && e.target !== otherVertex);
     }
 }

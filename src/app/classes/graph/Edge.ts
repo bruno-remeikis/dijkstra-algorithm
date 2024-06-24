@@ -40,10 +40,10 @@ export class Edge extends GraphElement
 
     get valuePoint(): Point { return this._valuePoint; }
 
-    public havePoint(x: number, y: number): boolean
+    public hovers(x: number, y: number): boolean
     {
         const distancia = Math.sqrt((this.valuePoint.x - x) ** 2 + (this.valuePoint.y - y) ** 2);
-        return distancia <= Vertex.radius;
+        return distancia <= Edge.valueRadius;
     }
 
     public recalculate(): void {
