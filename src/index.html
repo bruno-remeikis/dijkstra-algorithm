@@ -1,10 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Bruno Remeikis">
+
     <title>Graph</title>
 
+    <!-- FontAwesome URL: https://fontawesome.com/icons/trash-can?f=classic&s=regular -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,15 +16,42 @@
         <div>
             <h1>Graph</h1>
 
-            <div id="control-buttons">
-                <button id="btn-modo-mover">Mover</button>
-                <button id="btn-modo-add-vertice">Novo Vértice</button>
-                <button id="btn-modo-select-vertice">Selecionar Vértice</button>
-                <button id="btn-modo-connect-vertices">Conectar Vértices</button>
-                <button id="btn-clear">Limpar</button>
-            </div>
+            <div class="main-container">
 
-            <canvas id="canvas" width="460" height="300"></canvas>
+                <div class="side left-side">
+                    <div id="main-buttons" class="circle-buttons">
+                        <button data-mode="move" title="Mover">
+                            <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                        </button>
+                        <button data-mode="select-vertex" title="Selecionar">
+                            <i class="fa-solid fa-arrow-pointer"></i>
+                        </button>
+                        <button data-mode="add-vertex" title="Adicionar vértice">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                        <button data-mode="connect-vertices" title="Conectar vértices">
+                            <i class="fa-solid fa-plug"></i>
+                        </button>
+                        <button id="btn-clean" title="Limpar tudo">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <div class="side right-side">
+                    <div id="control-buttons">
+                        <button id="btn-select-all">Selecionar tudo</button>
+                        <button id="btn-unselect-all">Desselecionar tudo</button>
+                        <br>
+                        <button id="btn-delete" class="hidden">Deletar</button>
+                    </div>
+                </div>
+
+            </div>
             
             <div class="point-inputs">
                 <div class="point-input">

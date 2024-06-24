@@ -1,255 +1,283 @@
-import Vertice from "./app/model/Vertice";
-import DijstraAlgorithm from "./app/model/DjikstraAlgorithm";
-import GraphRenderer from "./app/model/GraphRenderer";
+import { Vertex } from "./app/classes/graph/Vertex";
+import { DijkstraAlgorithm } from "./app/classes/algorithms/DjikstraAlgorithm";
+import { GraphRenderer } from "./app/classes/graphics/GraphRenderer";
+import { Graph } from "./app/classes/graph/Graph";
+import { ModeManager } from "./app/classes/managers/ModeManager";
 
-interface Djikstra {
-    raiz: number;
-    dist: number[];
-    marca: number[];
-    ant: number[];
-}
+// Elementos HTML
+const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+const inpOrigem = document.getElementById('origem') as HTMLInputElement;
+const inpDestino = document.getElementById('destino') as HTMLInputElement;
+// Main buttons
+const mainBtns = document.getElementById('main-buttons') as HTMLDivElement;
+const btnClean = document.getElementById('btn-clean') as HTMLButtonElement;
+// Control buttons
+const controlBtns = document.getElementById('control-buttons') as HTMLDivElement;
+const btnSelectAll = document.getElementById('btn-select-all') as HTMLButtonElement;
+const btnUnselectAll = document.getElementById('btn-unselect-all') as HTMLButtonElement;
+const btnDelete = document.getElementById('btn-delete') as HTMLButtonElement;
 
-function gerarGrafo(): Vertice[]
-{
-    const adjMatrix = [
-        [  0,  2,  0,  1,  0,  0,  0, ],
-        [  0,  0,  0,  3, 10,  0,  0, ],
-        [  4,  0,  0,  0,  0,  5,  0, ],
-        [  0,  0,  2,  0,  2,  8,  4, ],
-        [  0,  0,  0,  0,  0,  0,  6, ],
-        [  0,  0,  0,  0,  0,  0,  0, ],
-        [  0,  0,  0,  0,  0,  1,  0, ],
-    ];
+// CANVAS
+const defaultCanvasDimension = {
+    width: 600,
+    height: 400,
+};
+canvas.width = defaultCanvasDimension.width;
+canvas.height = defaultCanvasDimension.height;
 
-    const vertices: Vertice[] = [];
+// Graph
+const graph: Graph = new Graph()
+    .defineAsDefaultGraph(canvas.width, canvas.height);
 
-    for(let i = 0; i < adjMatrix.length; i++)
-    {
-        const v = criarVertice();
-        if(v)
-            vertices.push(v);
-    }
-    
-    // Conectar vértices (criar arestas)
-    for(let i = 0; i < adjMatrix.length; i++)
-        for(let j = 0; j < adjMatrix.length; j++)
-            if(adjMatrix[i][j] > 0)
-                vertices[i].conectar(vertices[j], adjMatrix[i][j], true);
+// Managers
+const modeManager: ModeManager = new ModeManager(mainBtns);
 
-    vertices[0].setPosition(150, 50);
-    vertices[1].setPosition(300, 50);
-    
-    vertices[2].setPosition(75, 150);
-    vertices[3].setPosition(225, 150);
-    vertices[4].setPosition(385, 150);
-    
-    vertices[5].setPosition(150, 250);
-    vertices[6].setPosition(300, 250);
+// Algorithm
+let raiz: number = 0;
+let destino: number = 5;
+let djikstraAlgorithm: DijkstraAlgorithm = new DijkstraAlgorithm(graph);
 
-    return vertices;
-}
+// Renderizador
+const ctx = canvas.getContext("2d")!;
+const gh: GraphRenderer = new GraphRenderer(ctx, graph);
 
-function criarVertice(): Vertice | null
-{
-    if(Vertice.getLastIndex() >= 25)
-        return null;
-
-    const index = Vertice.consumeIndex();
-    
-    return new Vertice(index, String.fromCharCode(index + 65));
-}
-
-type Modo = 'mover' | 'add-vertice' | 'select-vertice' | 'connect-vertices';
-let modo: Modo = 'mover';
-let connectedVertices: Vertice[] = [];
-
-function configModeBtn(nomeModo: Modo) {
-    console.log(nomeModo);
-
-    const el = document.getElementById('btn-modo-' + nomeModo);
-    if(el)
-        el.onclick = () =>
-        {
-            if(modo !== nomeModo)
-            {
-                modo = nomeModo;
-
-                // Se mudou para um/outro modo de seleção:
-                // remove os vértices que haviam sido selecionados
-                if(modo !== 'select-vertice' && modo !== 'connect-vertices')
-                    clearSelected();
-            }
-        }
-}
-
-function clearSelected() {
-    while(connectedVertices.length > 0) {
-        const v = connectedVertices.pop();
-        if(v)
-            v.selected = false;
-    }
-}
+main();
 
 function main()
 {
-    // Elementos do grafo
-
-    let vertices: Vertice[] = gerarGrafo();
-
-    // Elementos HTML
-
-    const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    const inpOrigem = document.getElementById('origem') as HTMLInputElement;
-    const inpDestino = document.getElementById('destino') as HTMLInputElement;
-
-    // Parâmetros
-
-    let raiz: number = 0;
-    let destino: number = 5;
-
-    // Djikstra
-
-    let djikstraAlgorithm: DijstraAlgorithm | null = DijstraAlgorithm.process(vertices, raiz);
-    if(djikstraAlgorithm)
-        djikstraAlgorithm.calculatePath(destino);
-
-    // Renderizador
-
-    const gh: GraphRenderer = new GraphRenderer(vertices);
-    gh.render();
-
     // Eventos
 
-    configModeBtn('mover');
-    configModeBtn('add-vertice');
-    configModeBtn('select-vertice');
-    configModeBtn('connect-vertices');
+    modeManager.configModeBtns(graph, gh, () => {
+        controlBtns.classList.remove('visible');
+    }, {
+        'select-vertex': () => controlBtns.classList.add('visible')
+    });
+    modeManager.selectMode('move');
 
-    const btnClear = document.getElementById('btn-clear');
-    if(btnClear)
-        btnClear.onclick = () => {
-            clearSelected();
-            while(vertices.length > 0)
-                vertices.pop();
-            Vertice.resetIndex();
-            djikstraAlgorithm = null;
-            inpOrigem.value = '';
-            inpDestino.value = '';
-            gh.clear();
+    configCanvasRedim();
+
+    configCanvasClickEvent();
+
+    // Iniciar
+
+    djikstraAlgorithm.process(raiz)
+        .calculatePath(destino);
+
+    gh.render();
+}
+
+function configCanvasRedim() {
+    window.addEventListener('resize', e => {
+        if(window.innerWidth <= 820) {
+            canvas.width = window.innerWidth - 240;
+            gh.rerender();
         }
+        else if(canvas.width !== defaultCanvasDimension.width) {
+            canvas.width = defaultCanvasDimension.width;
+            gh.rerender();
+        }
+    });
+}
+
+function configCanvasClickEvent()
+{
+    btnClean.onclick = () => limparTudo(gh);
+    btnSelectAll.onclick = selectAll;
+    btnUnselectAll.onclick = unselectAll;
+    btnDelete.onclick = () => {
+        if(window.confirm("Deseja mesmo apagar todos estes elementos?"))
+            deleteSelected(gh);
+    };
 
     canvas.onclick = (event) =>
     {
         const x = event.offsetX;
         const y = event.offsetY;
 
-        switch(modo)
+        gh.rerender();
+
+        switch(modeManager.mode)
         {
-            case 'add-vertice':
-                const v = criarVertice();
+            case 'move': {
+                let v = graph.selectedVertex;
                 if(v) {
-                    v.setPosition(x, y);
-                    vertices.push(v);
-        
-                    gh.clear();
-                    gh.render();
+                    graph.unselectVertex(v);
+                    gh.rerender();
                 }
-                break;
-
-            case 'connect-vertices':
-                let selected: Vertice | undefined;
-                for(const v of vertices)
-                    if(v.hasPoint(x, y))
-                        selected = v;
-                if(selected) {
-                    selected.selected = !selected.selected;
-
-                    // Se o vértice clicado tiver sido selecionado
-                    if(selected.selected)
-                    {
-                        // Se já existir outro vértice selecionado
-                        if(connectedVertices.length === 1) 
-                        {
-                            let valorAresta = Number(prompt("Valor da aresta:"));
-                            if(!valorAresta || isNaN(valorAresta) || valorAresta <= 0)
-                                valorAresta = 1;
-
-                            // Conecta os vértices selecionados
-                            connectedVertices[0].conectar(selected, valorAresta, true);
-
-                            // Remove seleção dos vértices
-                            connectedVertices[0].selected = false;
-                            connectedVertices.pop();
-                            selected.selected = false;
-                        }
-                        else
-                            connectedVertices.push(selected);
+                else {
+                    v = graph.getClickedVertex(x, y);
+                    if(v) {
+                        graph.selectVertex(v);
+                        gh.rerender();
                     }
-                    // Se o vértice clicado tiver sido desselecionado
-                    else
-                        connectedVertices = connectedVertices.filter(v => selected !== v);
-
-                    gh.clear();
-                    gh.render();
                 }
                 break;
+            }
+            case 'select-vertex': {
+                const v = graph.getClickedVertex(x, y);
+                if(v) {
+                    if(v.selected)
+                        graph.unselectVertex(v);
+                    else
+                        graph.selectVertex(v);
+
+                    switchControlButtonsVisibility();
+                }
+                else {
+                    const a = graph.getClickedEdge(x, y);
+                    if(a) {
+                        a.selected = !a.selected;
+                        switchControlButtonsVisibility();
+                    }
+                }
+                gh.rerender();
+                break;
+            }
+            case 'add-vertex': {
+                const v = graph.addVertex(x, y);
+                if(v)
+                    gh.rerender();
+                break;
+            }
+            case 'connect-vertices': {
+                graph.connectVertices(x, y);
+                
+                try {
+                    djikstraAlgorithm.reprocess()
+                        .recalculatePath();
+                } catch(err) {
+                    console.error(err);
+                }
+
+                gh.rerender();
+                break;
+            }
         }
     };
 
+    canvas.onmousemove = (event) =>
+    {
+        const x = event.offsetX;
+        const y = event.offsetY;
+
+        switch(modeManager.mode)
+        {
+            case 'move':
+                const v = graph.selectedVertex;
+                if(v) {
+                    v.move(x, y);
+                    gh.rerender();
+                }
+                break;
+
+            /*case 'add-vertex':
+                gh.rerender();
+                gh.teste(x, y);
+                break;*/
+        }
+    }
+
+    //! Analizar trexos semelhantes a `graph.vertices`
     inpOrigem.onkeydown = (event) =>
     {
         event.preventDefault();
 
         const key = event.key.toUpperCase();
 
-        if(key.length == 1)
+        if(key.length === 1)
         {
-            Vertice.clearMarcacoes(vertices);
+            Vertex.markOff(graph.vertices);
             gh.clear();
 
             inpOrigem.value = key;
             raiz = key.charCodeAt(0) - 65;
 
             try {
-                if(raiz >= 0 && raiz < vertices.length) {
-                    const alg = DijstraAlgorithm.process(vertices, raiz);
-                    if(alg) {
-                        djikstraAlgorithm = alg;
-                        alg.calculatePath(destino);
-                    }
-                }
+                djikstraAlgorithm.process(raiz)
+                    .recalculatePath();
+            } catch(err) {
+                console.error(err);
             }
-            catch(err) {}
 
             gh.render();
         }
     };
 
+    //! Analizar trexos semelhantes a `graph.vertices`
     inpDestino.onkeydown = (event) =>
     {
         event.preventDefault();
 
         const key = event.key.toUpperCase();
 
-        if(key.length == 1)
+        if(key.length === 1)
         {
-            Vertice.clearMarcacoes(vertices);
+            Vertex.markOff(graph.vertices);
             gh.clear();
 
             inpDestino.value = key;
             destino = key.charCodeAt(0) - 65;
 
             try {
-                if(destino >= 0 && destino < vertices.length)
+                if(destino >= 0 && destino < graph.vertices.length)
                     if(djikstraAlgorithm) {
                         djikstraAlgorithm.calculatePath(destino);
                     }
             }
-            catch(err) {}
+            catch(err) {
+                console.error(err);
+            }
 
             gh.render();
         }
     };
 }
 
-main();
+function switchControlButtonsVisibility() {
+    if(graph.hasSelectedElements())
+        controlBtns?.classList.add('enabled');
+    else
+        controlBtns?.classList.remove('enabled');
+}
+
+function limparTudo(gh: GraphRenderer) {
+    if(window.confirm("Deseja mesmo apagar tudo?")) {
+        graph.reset();
+        inpOrigem.value = '';
+        inpDestino.value = '';
+        gh.clear();
+    }
+}
+
+function selectAll() {
+    graph.selectAllElements();
+    gh.rerender();
+
+    switchControlButtonsVisibility();
+}
+
+function unselectAll() {
+    graph.unselectAllElements();
+    gh.rerender();
+
+    switchControlButtonsVisibility();
+}
+
+function deleteSelected(gh: GraphRenderer)
+{
+    const vertices = graph.selectedVertices;
+    if(vertices)
+        graph.removeVertices(vertices);
+
+    const edges = graph.selectedEdges;
+    console.log(edges);
+    if(edges)
+        graph.removeEdges(edges);
+
+    graph.unselectAllElements();
+
+    djikstraAlgorithm.reprocess()
+        .recalculatePath(); 
+
+    gh.rerender();
+}
